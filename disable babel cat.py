@@ -1,7 +1,6 @@
 import pywikibot
 import re
 from datetime import timedelta
-from pywikibot.pagegenerators import AllpagesPageGenerator
 
 site = pywikibot.Site()
 tl_page = pywikibot.Page(site, "Template:Babel")
