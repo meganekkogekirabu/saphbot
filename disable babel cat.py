@@ -15,13 +15,13 @@ for page in gen:
         try:
             delta = (site.server_time() - last_edit[2]) >= timedelta(days=730)
             
-            if delta and "Babel" in page.text and "nocat" not in page.text:
-                page.text = re.sub(r"^(?!<!-- ?)({{Babel[^}]+)", r"\1|nocat=1", page.text, flags =  re.MULTILINE)
-                page.save("testing: disable Babel categorisation for users whose last contribution was more than 2 years ago")
+            if delta and "Babel" in page.text and "inactive" not in page.text:
+                page.text = re.sub(r"({{Babel[^}]+)", r"\1|inactive=1", page.text)
+                page.save("mark users whose last contribution was more than 2 years ago as inactive in bABEL")
                 
-            elif not delta and "nocat" in page.text:
-                page.text = re.sub(r"({{Babel[^}]+)\|nocat=1", r"\1")
-                page.save("testing: enable Babel categorisation, which was disabled despite last edit being recent")
+            elif not delta and "inactive" in page.text:
+                page.text = re.sub(r"({{Babel[^}]+)\|inactive=1", r"\1")
+                page.save("enable Babel categorisation, which was disabled despite last edit being recent")
         
         except:
             # Probably a redirect from a rename; just skip.
