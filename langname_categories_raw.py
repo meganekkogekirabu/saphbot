@@ -2,7 +2,6 @@ import re
 from languages_utils import Languages
 import pywikibot
 from pywikibot import pagegenerators
-from pywikibot.site import Namespace, NamespacesDict
 
 languages = Languages()
 
