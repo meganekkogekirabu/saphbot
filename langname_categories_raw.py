@@ -2,10 +2,9 @@ import re
 from languages_utils import Languages
 import pywikibot
 from pywikibot import pagegenerators
-from pywikibot.site import Namespace
+from pywikibot.site import Namespace, NamespacesDict
 
 languages = Languages()
-languages.get_canonical_names()
 
 def parse(match):
     txt = match.group(1)
@@ -14,8 +13,8 @@ def parse(match):
     # Try to match the longest possible langname.
     for i in range(len(parts), 0, -1):
         lang = ' '.join(parts[:i])
-        if lang in languages.canonical_names:
-            code = languages.canonical_names[lang]
+        if lang in languages.get_canonical_names():
+            code = languages.get_canonical_name(lang)
             rest = ' '.join(parts[i:])
             return f"{{{{cln|{code}|{rest}}}}}"
 
@@ -27,7 +26,7 @@ def raw_to_template(txt):
 
 site = pywikibot.Site()
 cat = pywikibot.Category(site, "Category:Entries with language name categories using raw markup by language")
-gen = pagegenerators.CategorizedPageGenerator(cat, recurse=True, namespaces=Namespace.MAIN)
+gen = pagegenerators.CategorizedPageGenerator(cat, recurse=True, namespaces=[0, 118])
 
 for page in pagegenerators.PreloadingGenerator(gen, 10):
     merge_templates = re.compile(r"{{((?:catlangname|cln)\|)([^|]+)(\|[^}]+)}}(?:\s*{{(?:catlangname|cln)\|\2(\|[^}]+)}})?(?:\s*{{(?:catlangname|cln)\|\2(\|[^}]+)}})?(?:\s*{{(?:catlangname|cln)\|\2(\|[^}]+)}})?(?:\s*{{(?:catlangname|cln)\|\2(\|[^}]+)}})?", flags = re.I)

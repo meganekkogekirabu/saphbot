@@ -1,5 +1,7 @@
-__init__.py
-lists
 user-config.py
 __pycache__
 .venv
+logs
+pywikibot-SaphBot.lwp
+throttle.ctrl
+apicache
