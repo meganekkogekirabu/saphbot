@@ -14,7 +14,7 @@ def parse(match):
     for i in range(len(parts), 0, -1):
         lang = ' '.join(parts[:i])
         if lang in languages.get_canonical_names():
-            code = languages.get_canonical_name(lang)
+            code = languages.get_by_canonical_name(lang)
             rest = ' '.join(parts[i:])
             return f"{{{{cln|{code}|{rest}}}}}"
 
