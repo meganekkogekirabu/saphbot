@@ -1,2 +1,5 @@
 __init__.py
-/lists
+lists
+user-config.py
+__pycache__
+.venv
