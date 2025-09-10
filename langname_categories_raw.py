@@ -7,6 +7,7 @@ languages = Languages()
 
 def parse(match):
     txt = match.group(1)
+    txt = txt.replace("_", " ")
     parts = txt.split()
     
     # Try to match the longest possible langname.
