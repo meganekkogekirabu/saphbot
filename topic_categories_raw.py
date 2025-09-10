@@ -1,11 +1,10 @@
 import pywikibot
 from pywikibot import pagegenerators
-from pywikibot.site import Namespace
 import re
 
 site = pywikibot.Site()
 cat = pywikibot.Category(site, "Category:Entries with topic categories using raw markup by language")
-gen = pagegenerators.CategorizedPageGenerator(cat, recurse=True, namespaces=Namespace.MAIN)
+gen = pagegenerators.CategorizedPageGenerator(cat, recurse=True, namespaces=[0, 118])
 
 for page in pagegenerators.PreloadingGenerator(gen, 10):
     replace_raw = r"\[\[cat(?:egory)?:([a-zA-Z\-]{2,11}):([^\]]+)\]\]"
