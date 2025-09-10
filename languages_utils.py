@@ -44,5 +44,5 @@ class Languages:
             self.language_codes = json_from_wikitext("Module:languages/code to canonical name.json")
         return self.language_codes
     
-    def get_canonical_name(self, lang):
+    def get_by_canonical_name(self, lang):
         return self.canonical_names.get(lang)
