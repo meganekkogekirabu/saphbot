@@ -3,7 +3,7 @@ import pywikibot
 from pywikibot import pagegenerators
 
 def repl(match):
-    inner = match.group(1)
+    inner = match.group(1).replace("\n", "")
     parts = inner.split("|")
 
     updated = []
@@ -23,7 +23,7 @@ site = pywikibot.Site()
 cat = pywikibot.Category(site, "Category:Pages with legacy etymon format")
 gen = pagegenerators.CategorizedPageGenerator(cat)
 
-template = re.compile(r"\{\{etymon\|(.*?)\}\}")
+template = re.compile(r"\{\{etymon\|(.*?)\}\}", flags = re.S)
 
 for page in pagegenerators.PreloadingGenerator(gen, 10):
     page.text = template.sub(repl, page.text)
