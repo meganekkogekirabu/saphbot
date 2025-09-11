@@ -21,7 +21,7 @@ def repl(match):
 
 site = pywikibot.Site()
 cat = pywikibot.Category(site, "Category:Pages with legacy etymon format")
-gen = pagegenerators.CategorizedPageGenerator(cat)
+gen = pagegenerators.CategorizedPageGenerator(cat, namespaces=[0, 100, 118])
 
 template = re.compile(r"\{\{etymon\|(.*?)\}\}", flags = re.S)
 
