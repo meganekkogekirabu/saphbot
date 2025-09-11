@@ -2,6 +2,12 @@ import pywikibot
 import re
 from datetime import timedelta
 
+ignore = []
+
+with open("lists/babel_cat_ignore.txt", "r") as file:
+    for line in file:
+        ignore.append(line)
+
 site = pywikibot.Site()
 tl_page = pywikibot.Page(site, "Template:Babel")
 gen = pywikibot.page.BasePage(tl_page).getReferences(only_template_inclusion=True, namespaces=2)
@@ -9,7 +15,7 @@ gen = pywikibot.page.BasePage(tl_page).getReferences(only_template_inclusion=Tru
 for page in gen:
     title = page.title()
     
-    if "/" not in title:
+    if "/" not in title and title not in ignore:
         last_edit = pywikibot.User(site, title).last_edit
         
         try:
