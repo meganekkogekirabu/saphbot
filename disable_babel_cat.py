@@ -24,10 +24,6 @@ for page in gen:
             if delta and "inactive=1" not in page.text:
                 page.text = re.sub(r"({{babel[^}]+)", r"\1|inactive=1", page.text, flags = re.I)
                 page.save("mark users whose last contribution was more than 2 years ago as inactive in Babel")
-                
-            elif not delta and "inactive=1" in page.text:
-                page.text = re.sub(r"({{babel[^}]+)\|inactive=1", r"\1", page.text, flags = re.I)
-                page.save("enable Babel categorisation, which was disabled despite last edit being recent")
         
         except:
             # Probably a redirect from a rename; just skip.
