@@ -6,18 +6,18 @@ def repl(match):
     inner = match.group(1)
     parts = inner.split("|")
 
-    transformed = []
+    updated = []
     for part in parts:
         subparts = part.split(">")
         if len(subparts) == 3:
-            lang, word, someid = subparts
-            transformed.append(f"{lang}:{word}<id:{someid}>")
+            lang, word, id = subparts
+            updated.append(f"{lang}:{word}<id:{id}>")
         elif len(subparts) == 2:
-            word, someid = subparts
-            transformed.append(f"{word}<id:{someid}>")
+            word, id = subparts
+            updated.append(f"{word}<id:{id}>")
         else:
-            transformed.append(part)
-    return "{{etymon|" + "|".join(transformed) + "}}"
+            updated.append(part)
+    return "{{etymon|" + "|".join(updated) + "}}"
 
 site = pywikibot.Site()
 cat = pywikibot.Category(site, "Category:Pages with legacy etymon format")
