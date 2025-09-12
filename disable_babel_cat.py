@@ -1,8 +1,9 @@
 import pywikibot
 import re
 from datetime import timedelta
+from pywikibot.page import BasePage
 
-ignore = []
+ignore = [] 
 
 with open("lists/babel_cat_ignore.txt", "r") as file:
     for line in file:
@@ -10,7 +11,7 @@ with open("lists/babel_cat_ignore.txt", "r") as file:
 
 site = pywikibot.Site()
 tl_page = pywikibot.Page(site, "Template:Babel")
-gen = pywikibot.page.BasePage(tl_page).getReferences(only_template_inclusion=True, namespaces=2)
+gen = BasePage(tl_page).getReferences(only_template_inclusion=True, namespaces=2)
 
 for page in gen:
     title = page.title()
