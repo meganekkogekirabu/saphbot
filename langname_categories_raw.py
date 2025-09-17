@@ -1,5 +1,5 @@
 import re
-from languages_utils import Languages
+from data_utils import Languages
 import pywikibot
 from pywikibot import pagegenerators
 
