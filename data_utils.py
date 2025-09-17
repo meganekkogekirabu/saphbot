@@ -23,8 +23,7 @@ def json_from_wikitext(title):
     
     body = response.json()
     if body.get("error"):
-        print(body.get("error"))
-        raise Exception(f"Could not find page {title}")
+        raise Exception(f"Could not find page {title}:", body["error"])
         return {}
     
     return json.loads(body["parse"]["wikitext"])
@@ -51,8 +50,8 @@ class WiktData:
         
 class Languages(WiktData):
     def __init__(self):
-        WiktData.__init__(self, "languages")
+        super().__init__("languages")
 
 class Scripts(WiktData):
     def __init__(self):
-        WiktData.__init__(self, "scripts")
+        super().__init__("scripts")
