@@ -1,11 +1,11 @@
-# Utilities for working with en:wikt:Module:languages.
+# Utilities for fetching JSON from Module:languages & related.
 
 import requests
 import json
 
-def json_from_wikitext(title):
+def json_from_wikitext(title: str) -> dict:
     response = requests.get(
-        f"https://en.wiktionary.org/w/api.php",
+        "https://en.wiktionary.org/w/api.php",
         {
             "action": "parse",
             "format": "json",
@@ -30,7 +30,7 @@ def json_from_wikitext(title):
 
 
 class WiktData:
-    def __init__(self, module):
+    def __init__(self, module: str):
         self.canonical_names = {}
         self.language_codes = {}
         self.module = module
@@ -44,9 +44,6 @@ class WiktData:
         if self.language_codes == {}:
             self.language_codes = json_from_wikitext(f"Module:{self.module}/code to canonical name.json")
         return self.language_codes
-    
-    def get_by_canonical_name(self, query):
-        return self.canonical_names.get(query)
         
 class Languages(WiktData):
     def __init__(self):
