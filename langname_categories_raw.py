@@ -13,8 +13,8 @@ def parse(match):
     # Try to match the longest possible langname.
     for i in range(len(parts), 0, -1):
         lang = ' '.join(parts[:i])
-        if lang in languages.get_canonical_names():
-            code = languages.get_by_canonical_name(lang)
+        code = languages.get_canonical_names().get(lang)
+        if code:
             rest = ' '.join(parts[i:])
             return f"{{{{cln|{code}|{rest}}}}}"
 
