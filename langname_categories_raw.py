@@ -28,8 +28,9 @@ site = pywikibot.Site()
 cat = pywikibot.Category(site, "Category:Entries with language name categories using raw markup by language")
 gen = pagegenerators.CategorizedPageGenerator(cat, recurse=True, namespaces=[0, 118])
 
+merge_templates = re.compile(r"{{((?:catlangname|cln)\|)([^|]+)(\|[^}]+)}}(?:\s*{{(?:catlangname|cln)\|\2(\|[^}]+)}})?(?:\s*{{(?:catlangname|cln)\|\2(\|[^}]+)}})?(?:\s*{{(?:catlangname|cln)\|\2(\|[^}]+)}})?(?:\s*{{(?:catlangname|cln)\|\2(\|[^}]+)}})?", flags = re.I)
+
 for page in pagegenerators.PreloadingGenerator(gen, 10):
-    merge_templates = re.compile(r"{{((?:catlangname|cln)\|)([^|]+)(\|[^}]+)}}(?:\s*{{(?:catlangname|cln)\|\2(\|[^}]+)}})?(?:\s*{{(?:catlangname|cln)\|\2(\|[^}]+)}})?(?:\s*{{(?:catlangname|cln)\|\2(\|[^}]+)}})?(?:\s*{{(?:catlangname|cln)\|\2(\|[^}]+)}})?", flags = re.I)
     page.text = raw_to_template(page.text)
     page.text = merge_templates.sub(r"{{\1\2\3\4\5\6\7}}", page.text)
     page.save("replace raw langname category markup with {{[[Template:catlangname|cln]]}}")
