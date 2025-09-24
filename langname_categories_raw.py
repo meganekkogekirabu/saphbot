@@ -5,7 +5,7 @@ from pywikibot import pagegenerators
 
 languages = Languages()
 
-def parse(match):
+def parse_cat(match):
     txt = match.group(1)
     txt = txt.replace("_", " ")
     parts = txt.split()
@@ -20,17 +20,14 @@ def parse(match):
 
     return match.group(0)
 
-def raw_to_template(txt):
-    pattern = re.compile(r"\[\[cat(?:egory):([^\]]+)\]\]", flags = re.I)
-    return pattern.sub(lambda m: parse(m), txt)
-
 site = pywikibot.Site()
 cat = pywikibot.Category(site, "Category:Entries with language name categories using raw markup by language")
 gen = pagegenerators.CategorizedPageGenerator(cat, recurse=True, namespaces=[0, 118])
 
 merge_templates = re.compile(r"{{((?:catlangname|cln)\|)([^|]+)(\|[^}]+)}}(?:\s*{{(?:catlangname|cln)\|\2(\|[^}]+)}})?(?:\s*{{(?:catlangname|cln)\|\2(\|[^}]+)}})?(?:\s*{{(?:catlangname|cln)\|\2(\|[^}]+)}})?(?:\s*{{(?:catlangname|cln)\|\2(\|[^}]+)}})?", flags = re.I)
+raw_to_template = re.compile(r"\[\[cat(?:egory):([^\]]+)\]\]", flags = re.I)
 
 for page in pagegenerators.PreloadingGenerator(gen, 10):
-    page.text = raw_to_template(page.text)
+    page.text = raw_to_template.sub(parse_cat, page.text)
     page.text = merge_templates.sub(r"{{\1\2\3\4\5\6\7}}", page.text)
     page.save("replace raw langname category markup with {{[[Template:catlangname|cln]]}}")
