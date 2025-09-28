@@ -5,11 +5,6 @@ import signal
 import sys
 from tqdm import tqdm
 
-def __exit(*_):
-    sys.exit(130)
-
-signal.signal(signal.SIGINT, __exit)
-
 def grep(query: str, flags: list[str], pagename = False, fmt = "{}", output = sys.stdout):
     if flags:
         vals = [flagmap[item] for item in flags if item in flagmap]
