@@ -1,5 +1,5 @@
 import re
-from data_utils import Languages
+from lib.data_utils import Languages
 import pywikibot
 from pywikibot import pagegenerators
 
@@ -12,10 +12,10 @@ def parse_cat(match):
     
     # Try to match the longest possible langname.
     for i in range(len(parts), 0, -1):
-        lang = ' '.join(parts[:i])
+        lang = " ".join(parts[:i])
         code = languages.get_canonical_names().get(lang)
         if code:
-            rest = ' '.join(parts[i:])
+            rest = " ".join(parts[i:])
             return f"{{{{cln|{code}|{rest}}}}}"
 
     return match.group(0)

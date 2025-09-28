@@ -1,7 +1,14 @@
-user-config.py
+# python
 __pycache__
 .venv
+
+# pywikibot
+apicache
 logs
 pywikibot-SaphBot.lwp
 throttle.ctrl
-apicache
+user-config.py
+
+# personal
+dumps
+lists/langcat_redundant_pagename.txt
