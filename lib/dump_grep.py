@@ -1,15 +1,16 @@
 from argparse import ArgumentParser
 from lxml import etree
 import re
+import signal
 import sys
 from tqdm import tqdm
+
+signal.signal(signal.SIGINT, lambda *_: sys.exit(130))
 
 def grep(query: str, flags: int = 0, pagename: bool = False, fmt: str = "{}", output = sys.stdout, count: bool = False):    
     # latest.xml should be enwiktionary-YYYYMMDD-pages-meta-current.xml
     context = etree.iterparse("dumps/latest.xml", events=("end",), tag=("{*}title", "{*}text"))
 
-    # The `pagename` flag allows dynamically including pagename as "{{PAGENAME}}" in
-    # your query.
     if not pagename:
         exp = re.compile(query, flags = flags)
     
@@ -25,14 +26,13 @@ def grep(query: str, flags: int = 0, pagename: bool = False, fmt: str = "{}", ou
     for event, elem in iterator:
         if elem.tag == f"{ns}title":
             title = elem.text
-
-            if pagename:
-                dyn = query.replace("{{PAGENAME}}", re.escape(title))
-                exp = re.compile(dyn, flags = flags)
+            page = elem.getparent()
         elif elem.tag == f"{ns}text":
             text = elem.text
 
             if not text:
+                if page is not None:
+                    page.clear()
                 elem.clear()
                 continue
 
@@ -41,6 +41,8 @@ def grep(query: str, flags: int = 0, pagename: bool = False, fmt: str = "{}", ou
                 exp = re.compile(dyn, flags = flags)
 
             if not exp.search(text):
+                if page is not None:
+                    page.clear()
                 elem.clear()
                 continue
             
@@ -48,7 +50,12 @@ def grep(query: str, flags: int = 0, pagename: bool = False, fmt: str = "{}", ou
             if not count:
                 print(fmt.format(title), file = output)
             
+            if page is not None:
+                page.clear()
             elem.clear()
+        
+        while elem.getprevious() is not None:
+            del elem.getparent()[0]
     
     if count:
         print(n)
