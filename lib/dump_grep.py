@@ -9,7 +9,7 @@ signal.signal(signal.SIGINT, lambda *_: sys.exit(130))
 
 def grep(query: str, flags: int = 0, pagename: bool = False, fmt: str = "{}", output = sys.stdout, count: bool = False):    
     # latest.xml should be enwiktionary-YYYYMMDD-pages-meta-current.xml
-    context = etree.iterparse("dumps/latest.xml", events=("end",), tag=("{*}title", "{*}text"))
+    context = etree.iterparse("dumps/latest.xml", events=("end",), tag=("{*}page"))
 
     if not pagename:
         exp = re.compile(query, flags = flags)
@@ -19,41 +19,31 @@ def grep(query: str, flags: int = 0, pagename: bool = False, fmt: str = "{}", ou
     if output == sys.stdout and not count:
         iterator = context  # don't use tqdm when writing to stdout, it looks stupid
     else:
-        iterator = tqdm(context, unit = "ppg", desc = "Searching", dynamic_ncols = True)
-    
-    ns = "{http://www.mediawiki.org/xml/export-0.11/}"
+        # fixme: would be nice to fetch total dynamically somehow
+        # for now, just manually run `grep page dumps/latest.xml`
+        iterator = tqdm(context, unit = "ppg", desc = "Searching", total = 10363325)
 
     for event, elem in iterator:
-        if elem.tag == f"{ns}title":
-            title = elem.text
-            page = elem.getparent()
-        elif elem.tag == f"{ns}text":
-            text = elem.text
+        title = elem.find("{*}title").text
+        text = elem.find("{*}revision/{*}text").text
 
-            if not text:
-                if page is not None:
-                    page.clear()
-                elem.clear()
-                continue
-
-            if pagename:
-                dyn = query.replace("{{PAGENAME}}", re.escape(title))
-                exp = re.compile(dyn, flags = flags)
-
-            if not exp.search(text):
-                if page is not None:
-                    page.clear()
-                elem.clear()
-                continue
-            
-            n += count
-            if not count:
-                print(fmt.format(title), file = output)
-            
-            if page is not None:
-                page.clear()
+        if not text:
             elem.clear()
+            continue
+
+        if pagename:
+            dyn = query.replace("{{PAGENAME}}", re.escape(title))
+            exp = re.compile(dyn, flags = flags)
+
+        if not exp.search(text):
+            elem.clear()
+            continue
         
+        n += count
+        if not count:
+            print(fmt.format(title), file = output)
+
+        elem.clear()
         while elem.getprevious() is not None:
             del elem.getparent()[0]
     
