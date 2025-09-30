@@ -8,7 +8,11 @@ signal.signal(signal.SIGINT, lambda *_: exit(130))
 
 site = pywikibot.Site()
 tl_page = pywikibot.Page(site, "Template:langcat")
-gen = BasePage(tl_page).getReferences(only_template_inclusion=True, namespaces=0)
+
+# run this to generate:
+# dump_grep "{{langcat\|{{PAGENAME}}}}|{{langcat|{\{pagename}}}}" -f i --pagename -o "lists/dumped/langcat_redundant_pagename.txt"
+# should take about ~20 minutes
+gen = pagegenerators.TextIOPageGenerator("lists/dumped/langcat_redundant_pagename.txt")
 
 repl = re.compile("{{langcat\\|{{pagename}}}}", flags = re.I)
 
