@@ -1,5 +1,4 @@
 import pywikibot
-from pywikibot.page import BasePage
 from pywikibot import pagegenerators
 import re
 import signal
