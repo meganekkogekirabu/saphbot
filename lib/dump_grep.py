@@ -23,7 +23,7 @@ def grep(query: str, flags: int = 0, pagename: bool = False, fmt: str = "{}", ou
         # for now, just manually run `grep page dumps/latest.xml`
         iterator = tqdm(context, unit = "ppg", desc = "Searching", total = 10363325)
 
-    for event, elem in iterator:
+    for _, elem in iterator:
         title = elem.find("{*}title").text
         text = elem.find("{*}revision/{*}text").text
 

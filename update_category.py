@@ -11,7 +11,7 @@ import sys
 signal.signal(signal.SIGINT, lambda *_: sys.exit(130))
 
 print("\033[3m\033[1;30m(hint: the namespace is automatically added)\033[0m")
-target = input(f"\033[34mmoving members of category\033[0m > ")
+target = input("\033[34mmoving members of category\033[0m > ")
 cat_target = "Category:" + target
 
 site = pywikibot.Site()
@@ -20,7 +20,7 @@ if not cat.exists():
     print(f"\033[31mpage {cat_target} does not exist\033[0m")
     sys.exit(1)
 
-renamed = input(f"\033[34mto here\033[0m > ")
+renamed = input("\033[34mto here\033[0m > ")
 
 cat_renamed = "Category:" + renamed
 

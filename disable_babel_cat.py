@@ -26,6 +26,6 @@ for page in gen:
                 page.text = re.sub(r"({{babel[^}]+)", r"\1|inactive=1", page.text, flags = re.I)
                 page.save("mark users whose last contribution was more than 2 years ago as inactive in Babel")
         
-        except:
+        except Exception:
             # Probably a redirect from a rename; just skip.
             continue
