@@ -6,42 +6,52 @@ from tqdm import tqdm
 
 def grep(query: str, flags: int = 0, pagename: bool = False, fmt: str = "{}", output = sys.stdout, count: bool = False):    
     # latest.xml should be enwiktionary-YYYYMMDD-pages-meta-current.xml
-    context = etree.iterparse("dumps/latest.xml", events=("end",), tag="{*}page")
+    context = etree.iterparse("dumps/latest.xml", events=("end",), tag=("{*}title", "{*}text"))
 
     # The `pagename` flag allows dynamically including pagename as "{{PAGENAME}}" in
     # your query.
     if not pagename:
         exp = re.compile(query, flags = flags)
     
-    if count:
-        n = 0
+    n = 0
     
     if output == sys.stdout and not count:
         iterator = context  # don't use tqdm when writing to stdout, it looks stupid
     else:
         iterator = tqdm(context, unit = "ppg", desc = "Searching", dynamic_ncols = True)
+    
+    ns = "{http://www.mediawiki.org/xml/export-0.11/}"
 
     for event, elem in iterator:
-        title = elem.find("{*}title").text
-        text = elem.find("{*}revision/{*}text").text
+        if elem.tag == f"{ns}title":
+            title = elem.text
 
-        if pagename:
-            dyn = query.replace("{{PAGENAME}}", re.escape(title))
-            exp = re.compile(dyn, flags = flags)
+            if pagename:
+                dyn = query.replace("{{PAGENAME}}", re.escape(title))
+                exp = re.compile(dyn, flags = flags)
+        elif elem.tag == f"{ns}text":
+            text = elem.text
 
-        if not exp.search(text if text else ""):
-            continue
-        
-        if count:
-            n += 1
-        else:
-            print(fmt.format(title), file = output)
+            if not text:
+                elem.clear()
+                continue
 
-        elem.clear()
-        while elem.getprevious() is not None:
-            del elem.getparent()[0]
+            if pagename:
+                dyn = query.replace("{{PAGENAME}}", re.escape(title))
+                exp = re.compile(dyn, flags = flags)
+
+            if not exp.search(text):
+                elem.clear()
+                continue
+            
+            n += count
+            if not count:
+                print(fmt.format(title), file = output)
+            
+            elem.clear()
     
-    print(n)
+    if count:
+        print(n)
 
 if __name__ == "__main__":
     parser = ArgumentParser(
@@ -88,6 +98,6 @@ if __name__ == "__main__":
 
     if args.output:
         with open(args.output, "w", encoding = "utf-8") as file:
-            grep(args.query, flags, pagename = args.pagename, fmt = args.format, output = file, count = args.count)
+            grep(args.query, flags, pagename = args.pagename, fmt = args.format or "{}", output = file, count = args.count)
     else:
-        grep(args.query, flags, pagename = args.pagename, fmt = args.format, count = args.count)
+        grep(args.query, flags, pagename = args.pagename, fmt = args.format or "{}", count = args.count)
