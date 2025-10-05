@@ -1,0 +1,13 @@
+exclude = [
+  ".git",
+  "user-config.py",
+  ".venv",
+]
+
+[lint]
+fixable = ["ALL"]
+
+[format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false

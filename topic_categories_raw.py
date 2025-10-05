@@ -1,13 +1,28 @@
+"""
+Replace raw topic category links like [[Category:en:Topic]] with {{C}}, like {{C|en|Topic}}.
+"""
+
+import re
 import pywikibot
 from pywikibot import pagegenerators
-import re
 
 site = pywikibot.Site()
-cat = pywikibot.Category(site, "Category:Entries with topic categories using raw markup by language")
+cat = pywikibot.Category(
+    site, "Category:Entries with topic categories using raw markup by language"
+)
 gen = pagegenerators.CategorizedPageGenerator(cat, recurse=True, namespaces=[0, 118])
 
-replace_raw = re.compile(r"\[\[cat(?:egory)?:([a-zA-Z\-]{2,11}):([^\]]+)\]\]", flags = re.I)
-merge_templates = re.compile(r"{{((?:c|topics)\|)([^|]+)(\|[^}]+)}}(?:\s*{{(?:c|topics)\|\2(\|[^}]+)}})?(?:\s*{{(?:c|topics)\|\2(\|[^}]+)}})?(?:\s*{{(?:c|topics)\|\2(\|[^}]+)}})?(?:\s*{{(?:c|topics)\|\2(\|[^}]+)}})?", flags = re.I)
+replace_raw = re.compile(
+    r"\[\[cat(?:egory)?:([a-zA-Z\-]{2,11}):([^\]]+)\]\]", flags=re.I
+)
+
+merge_templates = re.compile(
+    "{{((?:c|topics)\\|)([^|]+)(\\|[^}]+)}}(?:\\s*{{(?:c|topics)"
+    + "\\|\\2(\\|[^}]+)}})?(?:\\s*{{(?:c|topics)\\|\\2(\\|[^}]+)}}"
+    + ")?(?:\\s*{{(?:c|topics)\\|\\2(\\|[^}]+)}})?(?:\\s*{{(?:c|to"
+    + "pics)\\|\\2(\\|[^}]+)}})?",
+    flags=re.I,
+)
 
 for page in pagegenerators.PreloadingGenerator(gen, 10):
     page.text = replace_raw.sub(r"{{C|\1|\2}}", page.text)

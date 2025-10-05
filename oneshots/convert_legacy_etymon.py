@@ -2,6 +2,7 @@ import re
 import pywikibot
 from pywikibot import pagegenerators
 
+
 def repl(match):
     inner = match.group(1).replace("\n", "")
     parts = inner.split("|")
@@ -19,12 +20,15 @@ def repl(match):
             updated.append(part)
     return "{{etymon|" + "|".join(updated) + "}}"
 
+
 site = pywikibot.Site()
 cat = pywikibot.Category(site, "Category:Pages with legacy etymon format")
 gen = pagegenerators.CategorizedPageGenerator(cat, namespaces=[0, 100, 118])
 
-template = re.compile(r"\{\{etymon\|(.*?)\}\}", flags = re.S)
+template = re.compile(r"\{\{etymon\|(.*?)\}\}", flags=re.S)
 
 for page in pagegenerators.PreloadingGenerator(gen, 10):
     page.text = template.sub(repl, page.text)
-    page.save("update [[:Category:Pages with legacy etymon format|legacy etymon syntax]] to new syntax")
+    page.save(
+        "update [[:Category:Pages with legacy etymon format|legacy etymon syntax]] to new syntax"
+    )
