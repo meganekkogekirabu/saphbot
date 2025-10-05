@@ -1,6 +1,7 @@
 # python
 __pycache__
 .venv
+.ruff_cache
 
 # pywikibot
 apicache
