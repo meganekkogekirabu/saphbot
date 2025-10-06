@@ -1,3 +1,7 @@
+"""
+Convert legacy etymon syntax (lang>)word>id to (lang:)word<id:id>.
+"""
+
 import re
 import pywikibot
 from pywikibot import pagegenerators
