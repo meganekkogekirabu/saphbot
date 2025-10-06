@@ -1,13 +1,15 @@
 """
-CLI for searching for patterns in page text with the pages-meta-current dump.
+CLI or library for searching for patterns in page text with the pages-meta-current dump.
 See dump_grep --help for more.
+This script searches dumps/latest.xml. This should be enwiktionary-YYYYMMDD-pages-meta-current.
 """
 
 from argparse import ArgumentParser
-from lxml import etree
 import re
 import signal
 import sys
+from typing import Callable
+from lxml import etree
 from tqdm import tqdm
 
 signal.signal(signal.SIGINT, lambda *_: sys.exit(130))
@@ -15,26 +17,18 @@ signal.signal(signal.SIGINT, lambda *_: sys.exit(130))
 
 def grep(
     query: str,
-    flags: int = 0,
-    pagename: bool = False,
-    fmt: str = "{}",
-    output=sys.stdout,
-    count: bool = False,
+    flags: int,
+    pagename: bool,
+    callback: Callable,
+    iterator,
 ):
-    # latest.xml should be enwiktionary-YYYYMMDD-pages-meta-current.xml
-    context = etree.iterparse("dumps/latest.xml", events=("end",), tag=("{*}page"))
+    """
+    Main grepping function. This should not be called directly.
+    Use the entrypoints grep_cli or grep_lib.
+    """
 
     if not pagename:
         exp = re.compile(query, flags=flags)
-
-    n = 0
-
-    if output == sys.stdout and not count:
-        iterator = context  # don't use tqdm when writing to stdout, it looks stupid
-    else:
-        # fixme: would be nice to fetch total dynamically somehow
-        # for now, just manually run `grep page dumps/latest.xml`
-        iterator = tqdm(context, unit="ppg", desc="Searching", total=10363325)
 
     for _, elem in iterator:
         title = elem.find("{*}title").text
@@ -52,13 +46,65 @@ def grep(
             elem.clear()
             continue
 
-        n += count
-        if not count:
-            print(fmt.format(title), file=output)
+        callback(title)
 
         elem.clear()
         while elem.getprevious() is not None:
             del elem.getparent()[0]
+
+
+def grep_lib(
+    query: str,
+    flags: int = 0,
+    pagename: bool = False,
+) -> list:
+    """
+    Entrypoint to grep for other Python scripts.
+    """
+
+    iterator = etree.iterparse("dumps/latest.xml", events=("end",), tag=("{*}page"))
+    titles = []
+
+    def callback(title: str):
+        nonlocal titles
+        titles.append(title)
+
+    grep(query, flags, pagename, callback, iterator)
+
+    return titles
+
+
+def grep_cli(
+    query: str,
+    flags: int = 0,
+    pagename: bool = False,
+    fmt: str = "{}",
+    output=sys.stdout,
+    count: bool = False,
+):
+    """
+    Entrypoint to grep for the command line.
+    """
+
+    n = 0
+
+    def callback(title: str):
+        nonlocal n
+        nonlocal count
+        n += count  # noqa
+        if not count:
+            print(fmt.format(title), file=output)
+
+    context = etree.iterparse("dumps/latest.xml", events=("end",), tag=("{*}page"))
+
+    if output == sys.stdout and not count:
+        iterator = context  # don't use tqdm when writing to stdout, it looks stupid
+    else:
+        # fixme: would be nice to fetch total dynamically somehow
+        # for now, just manually run `grep page dumps/latest.xml`
+        iterator = tqdm(context, unit="ppg", desc="Searching", total=10363325)
+
+    grep(query, flags, pagename, callback, iterator)
 
     if count:
         print(n)
@@ -119,7 +165,7 @@ if __name__ == "__main__":
 
     if args.output:
         with open(args.output, "w", encoding="utf-8") as file:
-            grep(
+            grep_cli(
                 args.query,
                 flags,
                 pagename=args.pagename,
@@ -128,7 +174,7 @@ if __name__ == "__main__":
                 count=args.count,
             )
     else:
-        grep(
+        grep_cli(
             args.query,
             flags,
             pagename=args.pagename,
