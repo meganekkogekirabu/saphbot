@@ -1,4 +1,6 @@
-# Utilities for fetching JSON from Module:languages & related.
+"""
+Utilities for fetching JSON from Module:languages & related.
+"""
 
 import requests
 import json

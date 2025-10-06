@@ -1,3 +1,8 @@
+"""
+CLI for searching for patterns in page text with the pages-meta-current dump.
+See dump_grep --help for more.
+"""
+
 from argparse import ArgumentParser
 from lxml import etree
 import re
