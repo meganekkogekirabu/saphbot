@@ -33,16 +33,14 @@ def fetch(
 
     print("Downloading...")
 
-    progress = tqdm(
-        total=length,
-        unit="B",
-        unit_scale=True,
-        desc=filename_display,
-    )
-
     with (
         open("dumps/" + filename, "wb") as f,
-        progress as progress,
+        tqdm(
+            total=length,
+            unit="B",
+            unit_scale=True,
+            desc=filename_display,
+        ) as progress,
     ):
         for chunk in response.iter_content(chunk_size=8 * 1024):
             if chunk:
@@ -54,14 +52,12 @@ def fetch(
     with (
         open("dumps/" + filename[:-4], "wb") as decomp,
         bz2.BZ2File("dumps/" + filename, "rb") as comp,
-        progress as progress,
     ):
         for data in iter(lambda: comp.read(100 * 1024), b""):
             decomp.write(data)
-            progress.update(100 * 1024)
 
     os.remove("dumps/" + filename)
-    os.remove("dumps/latest.xml")   # remove any previous symlink
+    os.remove("dumps/latest.xml")  # remove any previous symlink
 
     os.symlink("dumps/" + filename[:-4], "dumps/latest.xml")
 
