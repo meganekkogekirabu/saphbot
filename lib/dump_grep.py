@@ -5,7 +5,10 @@ This script searches dumps/latest.xml. This should be enwiktionary-YYYYMMDD-page
 """
 
 from argparse import ArgumentParser
+import bz2
+import os
 import re
+import requests
 import signal
 import sys
 from typing import Callable
@@ -13,6 +16,54 @@ from lxml import etree
 from tqdm import tqdm
 
 signal.signal(signal.SIGINT, lambda *_: sys.exit(130))
+
+
+def fetch(
+    base: str = "https://dumps.wikimedia.org/enwiktionary/latest/",
+):
+    filename = "enwiktionary-latest-pages-meta-current.xml.bz2"
+    url = base + filename
+
+    response = requests.get(url, stream=True)
+    response.raise_for_status()
+
+    length = int(response.headers.get("content-length"))
+
+    filename_display = filename[0:20] + "..."
+
+    print("Downloading...")
+
+    progress = tqdm(
+        total=length,
+        unit="B",
+        unit_scale=True,
+        desc=filename_display,
+    )
+
+    with (
+        open("dumps/" + filename, "wb") as f,
+        progress as progress,
+    ):
+        for chunk in response.iter_content(chunk_size=8 * 1024):
+            if chunk:
+                f.write(chunk)
+                progress.update(8 * 1024)
+
+    print("Decompressing...")
+
+    with (
+        open("dumps/" + filename[:-4], "wb") as decomp,
+        bz2.BZ2File("dumps/" + filename, "rb") as comp,
+        progress as progress,
+    ):
+        for data in iter(lambda: comp.read(100 * 1024), b""):
+            decomp.write(data)
+            progress.update(100 * 1024)
+
+    os.remove("dumps/" + filename)
+    os.remove("dumps/latest.xml")   # remove any previous symlink
+
+    os.symlink("dumps/" + filename[:-4], "dumps/latest.xml")
 
 
 def grep(
@@ -110,13 +161,21 @@ def grep_cli(
         print(n)
 
 
-if __name__ == "__main__":
+def cli():
+    """
+    Command-line entrypoint.
+    """
+
     parser = ArgumentParser(
         prog="dump_grep",
         description="Script for searching Wikimedia dumps",
     )
 
-    parser.add_argument("query", help="regex (see documentation for the re module)")
+    parser.add_argument(
+        "query",
+        nargs="?",
+        help="regex (see documentation for the re module)",
+    )
 
     parser.add_argument(
         "-f",
@@ -144,7 +203,22 @@ if __name__ == "__main__":
         help="if enabled, prints out a count of matching pages rather than a list",
     )
 
+    parser.add_argument(
+        "--fetch",
+        action="store_true",
+        help="download latest dump and link it to dumps/latest.xml",
+    )
+
     args = parser.parse_args()
+
+    if not args.query and not args.fetch:
+        parser.error("one of query or --format must be passed")
+
+    if args.fetch and not args.query:
+        return fetch()
+
+    if args.fetch:
+        fetch()
 
     flagmap = {
         "a": re.ASCII,
@@ -181,3 +255,7 @@ if __name__ == "__main__":
             fmt=args.format or "{}",
             count=args.count,
         )
+
+
+if __name__ == "__main__":
+    cli()
