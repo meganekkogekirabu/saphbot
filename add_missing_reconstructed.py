@@ -13,4 +13,4 @@ gen = pagegenerators.CategorizedPageGenerator(cat, recurse=True, namespaces=118)
 
 for page in pagegenerators.PreloadingGenerator(gen, 10):
     page.text = "{{reconstructed}}\n" + page.text
-    page.save("add {{reconstructed}}")
+    page.save("add {{[[Template:reconstructed|reconstructed]]}}")

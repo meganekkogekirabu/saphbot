@@ -25,5 +25,5 @@ for page in pagegenerators.PreloadingGenerator(gen):
         page.text = repl.sub("{{langcat}}", page.text)
         page.text = page.text.replace("{{langcat|" + page.title() + "}}", "{{langcat}}")
         page.save(
-            "Remove redundant pagenames from {{[[Template:langcat|langcat]]}} invocations"
+            "remove redundant pagenames from {{[[Template:langcat|langcat]]}} invocations"
         )
