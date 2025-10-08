@@ -1,5 +1,6 @@
 InquirerPy
 lxml
+mwparserfromhell
 pre-commit
 pywikibot
 tqdm
