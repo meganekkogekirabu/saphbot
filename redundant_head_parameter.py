@@ -15,6 +15,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+import re
 import signal
 import sys
 import mwparserfromhell
@@ -29,10 +30,18 @@ cat = pywikibot.Category(
 )
 gen = CategorizedPageGenerator(cat, recurse=True, namespaces=[0, 100, 118])
 
+# ignore titles which contain apostrophes or dashes
+# FIXME: hack; should properly update such pages with `|nolink=1`
+ignore = re.compile("['\-]")
+
 for page in PreloadingGenerator(gen):
+    title = page.title()
+
+    if ignore.search(title):
+        continue
+
     code = mwparserfromhell.parse(page.text)
     templates = code.filter_templates()
-    title = page.title()
 
     changes_made = 0
 
