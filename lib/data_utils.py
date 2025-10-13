@@ -50,8 +50,8 @@ def json_from_wikitext(title: str) -> dict:
 
 class WiktData:
     def __init__(self, module: str):
-        self.canonical_names = {}
-        self.language_codes = {}
+        self.canonical_names: dict[str, str] = {}
+        self.language_codes: dict[str, str] = {}
         self.module = module
 
     def get_canonical_names(self):

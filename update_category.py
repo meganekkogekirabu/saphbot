@@ -30,6 +30,7 @@ from pywikibot.page import BasePage
 signal.signal(signal.SIGINT, lambda *_: sys.exit(130))
 
 print("\033[3m(hint: the namespace is automatically added)\033[0m")
+
 target = inquirer.text(
     message="Moving members of this category:",
 ).execute()
@@ -77,13 +78,16 @@ if is_topic:
         flags=re.I,
     )
 
-    def repl(m):
+    def _repl(m):
         return f"{{{{C|{lang}|{m.groups()[0] or ''}{new_topic}}}}}"
 else:
     update = re.compile(f"\\[\\[cat(?:egory)?:{target}\\]\\]", flags=re.I)
 
-    def repl(_):
+    def _repl(_):
         return f"[[{cat_renamed}]]"
+
+
+repl = _repl
 
 
 def diff(a: str, b: str) -> str:

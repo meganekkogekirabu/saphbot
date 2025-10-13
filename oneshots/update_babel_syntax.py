@@ -25,7 +25,7 @@ gen = TextIOPageGenerator("lists/private/babel_subpages.txt")
 exp = re.compile("{([^+\\n]+)\\+([^+\\n]+)\\+([^+}\\n]+)?}")
 
 
-def repl(match: str) -> str:
+def repl(match: re.Match[str]) -> str:
     masc, fem, neut = match.groups()
 
     if neut is not None:

@@ -32,7 +32,7 @@ gen = CategorizedPageGenerator(cat, recurse=True, namespaces=[0, 100, 118])
 
 # ignore titles which contain apostrophes or dashes
 # FIXME: hack; should properly update such pages with `|nolink=1`
-ignore = re.compile("['\-]")
+ignore = re.compile("['\\-]")
 
 for page in PreloadingGenerator(gen):
     title = page.title()
@@ -47,6 +47,8 @@ for page in PreloadingGenerator(gen):
 
     words = title.split(" ")
     is_multiword = len(words) > 1
+
+    linked_title = None
     if is_multiword:
         linked_title = " ".join(f"[[{word}]]" for word in words)
 

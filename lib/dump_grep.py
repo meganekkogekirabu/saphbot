@@ -42,7 +42,14 @@ def fetch(
     response = requests.get(url, stream=True)
     response.raise_for_status()
 
-    length = int(response.headers.get("content-length"))
+    length_header = response.headers.get("content-length")
+    total = None
+    dynamic_ncols = False
+
+    if length_header is not None:
+        total = int(length_header)
+    else:
+        dynamic_ncols = True
 
     filename_display = filename[0:20] + "..."
 
@@ -51,7 +58,8 @@ def fetch(
     with (
         open("dumps/" + filename, "wb") as f,
         tqdm(
-            total=length,
+            total=total,
+            dynamic_ncols=dynamic_ncols,
             unit="B",
             unit_scale=True,
             desc=filename_display,
@@ -88,6 +96,8 @@ def grep(
     Main grepping function. This should not be called directly.
     Use the entrypoints grep_cli or grep_lib.
     """
+
+    exp: re.Pattern
 
     if not pagename:
         exp = re.compile(query, flags=flags)
@@ -153,7 +163,7 @@ def grep_cli(
     def callback(title: str):
         nonlocal n
         nonlocal count
-        n += count  # noqa
+        n += count
         if not count:
             print(fmt.format(title), file=output)
 
