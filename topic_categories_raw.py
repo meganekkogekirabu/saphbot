@@ -36,7 +36,9 @@ for page in pagegenerators.PreloadingGenerator(gen):
 
     # first pass: convert cat links to templates
 
-    links = code.filter_wikilinks(matches=lambda link: is_category.search(str(link)))
+    links = code.filter_wikilinks(
+        matches=lambda link: is_category.search(str(link)) is not None
+    )
 
     for link in links:
         title = str(link.title)

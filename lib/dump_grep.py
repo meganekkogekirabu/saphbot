@@ -28,7 +28,7 @@ import re
 import requests
 import signal
 import sys
-from typing import Callable
+from typing import Callable, TextIO
 from lxml import etree
 from tqdm import tqdm
 
@@ -92,7 +92,9 @@ def _grep(
     flags: int,
     pagename: bool,
     callback: Callable,
-    iterator,
+    namespaces: list[str] | None,
+    invert_namespaces: bool,
+    iterator: etree.iterparse,
 ):
     """
     Main grepping function. This should not be called directly.
@@ -107,6 +109,17 @@ def _grep(
     for _, elem in iterator:
         title = elem.find("{*}title").text
         text = elem.find("{*}revision/{*}text").text
+
+        if namespaces is not None:
+            namespace = elem.find("{*}ns").text
+
+            if not invert_namespaces and namespace not in namespaces:
+                elem.clear()
+                continue
+
+            elif invert_namespaces and namespace in namespaces:
+                elem.clear()
+                continue
 
         if not text:
             elem.clear()
@@ -131,7 +144,9 @@ def grep_lib(
     query: str,
     flags: int = 0,
     pagename: bool = False,
-) -> list:
+    namespaces: list[str] | None = None,
+    invert_namespaces: bool = False,
+) -> list[str]:
     """
     Entrypoint to grep for other Python scripts.
     """
@@ -143,7 +158,15 @@ def grep_lib(
         nonlocal titles
         titles.append(title)
 
-    _grep(query, flags, pagename, callback, iterator)
+    _grep(
+        query,
+        flags,
+        pagename,
+        callback,
+        namespaces,
+        invert_namespaces,
+        iterator,
+    )
 
     return titles
 
@@ -153,8 +176,10 @@ def grep_cli(
     flags: int = 0,
     pagename: bool = False,
     fmt: str = "{}",
-    output=sys.stdout,
+    output: TextIO = sys.stdout,
     count: bool = False,
+    namespaces: list[str] | None = None,
+    invert_namespaces: bool = False,
 ):
     """
     Entrypoint to grep for the command line.
@@ -178,13 +203,21 @@ def grep_cli(
         # for now, just manually run `grep page dumps/latest.xml`
         iterator = tqdm(context, unit="ppg", desc="Searching", total=10363325)
 
-    _grep(query, flags, pagename, callback, iterator)
+    _grep(
+        query,
+        flags,
+        pagename,
+        callback,
+        namespaces,
+        invert_namespaces,
+        iterator,
+    )
 
     if count:
         print(n)
 
 
-def cli():
+def cli() -> None:
     """
     Command-line entrypoint.
     """
@@ -232,6 +265,18 @@ def cli():
         help="download latest dump and link it to dumps/latest.xml",
     )
 
+    parser.add_argument(
+        "-n",
+        "--namespaces",
+        help="comma-separated list of namespace numbers to include",
+    )
+
+    parser.add_argument(
+        "--invert-namespaces",
+        action="store_true",
+        help="if passed, excludes pages in `--namespaces' rather than including them",
+    )
+
     args = parser.parse_args()
 
     if not args.query and not args.fetch:
@@ -260,6 +305,10 @@ def cli():
     for f in vals:
         flags |= f
 
+    namespaces: list[str] | None = None
+    if args.namespaces is not None:
+        namespaces = [n.strip() for n in args.namespaces.split(",")]
+
     if args.output:
         with open(args.output, "w", encoding="utf-8") as file:
             grep_cli(
@@ -269,6 +318,8 @@ def cli():
                 fmt=args.format or "{}",
                 output=file,
                 count=args.count,
+                namespaces=namespaces,
+                invert_namespaces=args.invert_namespaces,
             )
     else:
         grep_cli(
@@ -277,6 +328,8 @@ def cli():
             pagename=args.pagename,
             fmt=args.format or "{}",
             count=args.count,
+            namespaces=namespaces,
+            invert_namespaces=args.invert_namespaces,
         )
 
 
