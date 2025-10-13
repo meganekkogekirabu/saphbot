@@ -19,6 +19,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+__all__ = ["fetch", "grep_lib"]
+
 from argparse import ArgumentParser
 import bz2
 import os
@@ -85,7 +87,7 @@ def fetch(
     os.symlink("dumps/" + filename[:-4], "dumps/latest.xml")
 
 
-def grep(
+def _grep(
     query: str,
     flags: int,
     pagename: bool,
@@ -141,7 +143,7 @@ def grep_lib(
         nonlocal titles
         titles.append(title)
 
-    grep(query, flags, pagename, callback, iterator)
+    _grep(query, flags, pagename, callback, iterator)
 
     return titles
 
@@ -176,7 +178,7 @@ def grep_cli(
         # for now, just manually run `grep page dumps/latest.xml`
         iterator = tqdm(context, unit="ppg", desc="Searching", total=10363325)
 
-    grep(query, flags, pagename, callback, iterator)
+    _grep(query, flags, pagename, callback, iterator)
 
     if count:
         print(n)
