@@ -17,7 +17,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-import difflib
 import re
 import signal
 import sys
@@ -25,6 +24,7 @@ from InquirerPy import inquirer
 import pywikibot
 from pywikibot import pagegenerators
 from pywikibot.page import BasePage
+from lib.misc import diff
 
 # pywikibot has an obnoxiously long traceback for sigint, just handle it here
 signal.signal(signal.SIGINT, lambda *_: sys.exit(130))
@@ -88,33 +88,6 @@ else:
 
 
 repl = _repl
-
-
-def diff(a: str, b: str) -> str:
-    """
-    Generate a line-by-line unified diff between two strings, highlighted in green and red.
-    """
-
-    lines_a = a.splitlines()
-    lines_b = b.splitlines()
-
-    def colour(line):
-        if line.startswith("+") and not line.startswith("+++"):
-            return f"\033[32m{line}\033[0m"
-        if line.startswith("-") and not line.startswith("---"):
-            return f"\033[31m{line}\033[0m"
-        return line
-
-    diff_lines = difflib.unified_diff(
-        lines_a,
-        lines_b,
-        fromfile="old",
-        tofile="new",
-        lineterm="",
-    )
-
-    coloured = [colour(line) for line in diff_lines]
-    return "\n".join(coloured)
 
 
 for page in pagegenerators.PreloadingGenerator(gen, 10):

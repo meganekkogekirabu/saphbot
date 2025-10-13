@@ -18,8 +18,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 import re
+import mwparserfromhell
 import pywikibot
 from pywikibot import pagegenerators
+from lib.misc import merge_templates
 
 site = pywikibot.Site()
 cat = pywikibot.Category(
@@ -27,19 +29,32 @@ cat = pywikibot.Category(
 )
 gen = pagegenerators.CategorizedPageGenerator(cat, recurse=True, namespaces=[0, 118])
 
-replace_raw = re.compile(
-    r"\[\[cat(?:egory)?:([a-zA-Z\-]{2,11}):([^\]]+)\]\]", flags=re.I
-)
+is_category = re.compile(r"\[\[cat(?:egory):([^\]]+)\]\]", flags=re.I)
 
-merge_templates = re.compile(
-    "{{((?:c|topics)\\|)([^|]+)(\\|[^}]+)}}(?:\\s*{{(?:c|topics)"
-    + "\\|\\2(\\|[^}]+)}})?(?:\\s*{{(?:c|topics)\\|\\2(\\|[^}]+)}}"
-    + ")?(?:\\s*{{(?:c|topics)\\|\\2(\\|[^}]+)}})?(?:\\s*{{(?:c|to"
-    + "pics)\\|\\2(\\|[^}]+)}})?",
-    flags=re.I,
-)
+for page in pagegenerators.PreloadingGenerator(gen):
+    code = mwparserfromhell.parse(page.text)
 
-for page in pagegenerators.PreloadingGenerator(gen, 10):
-    page.text = replace_raw.sub(r"{{C|\1|\2}}", page.text)
-    page.text = merge_templates.sub(r"{{\1\2\3\4\5\6\7}}", page.text)
+    # first pass: convert cat links to templates
+
+    links = code.filter_wikilinks(matches=lambda link: is_category.search(str(link)))
+
+    for link in links:
+        title = str(link.title)
+        parts = title.split(":")
+
+        if len(parts) != 3:
+            continue
+
+        lang, topic = title.split(":")[1:]
+        code.replace(link, f"{{{{C|{lang}|{topic}}}}}")
+
+    # second pass: merge c/C/topics templates
+
+    templates = code.filter_templates(
+        matches=lambda tl: tl.name in ["topics", "c", "C"]
+    )
+
+    merge_templates(code, templates)
+
+    page.text = str(code)
     page.save("replace raw topic category markup with {{[[Template:topics|C]]}}")
