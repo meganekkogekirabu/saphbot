@@ -19,7 +19,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-__all__ = ["fetch", "grep_lib"]
+__all__ = ["fetch", "grep"]
 
 from argparse import ArgumentParser
 import bz2
@@ -103,8 +103,6 @@ def _grep(
     Use the entrypoints grep_cli or grep_lib.
     """
 
-    exp: re.Pattern
-
     if not pagename:
         exp = re.compile(query, flags=flags)
 
@@ -142,7 +140,7 @@ def _grep(
             del elem.getparent()[0]
 
 
-def grep_lib(
+def grep(
     query: str,
     flags: int = 0,
     pagename: bool = False,
@@ -150,7 +148,7 @@ def grep_lib(
     invert_namespaces: bool = False,
 ) -> list[str]:
     """
-    Entrypoint to grep for other Python scripts.
+    Entrypoint to _grep for other Python scripts.
     """
 
     iterator = etree.iterparse("dumps/latest.xml", events=("end",), tag=("{*}page"))
@@ -173,7 +171,7 @@ def grep_lib(
     return titles
 
 
-def grep_cli(
+def _grep_cli(
     query: str,
     flags: int = 0,
     pagename: bool = False,
@@ -182,9 +180,9 @@ def grep_cli(
     count: bool = False,
     namespaces: list[str] | None = None,
     invert_namespaces: bool = False,
-):
+) -> None:
     """
-    Entrypoint to grep for the command line.
+    Entrypoint to _grep for printing to a file.
     """
 
     n = 0
@@ -219,11 +217,7 @@ def grep_cli(
         print(n)
 
 
-def cli() -> None:
-    """
-    Command-line entrypoint.
-    """
-
+def _main():
     parser = ArgumentParser(
         prog="dump_grep",
         description="Script for searching Wikimedia dumps",
@@ -313,7 +307,7 @@ def cli() -> None:
 
     if args.output:
         with open(args.output, "w", encoding="utf-8") as file:
-            grep_cli(
+            _grep_cli(
                 args.query,
                 flags,
                 pagename=args.pagename,
@@ -324,7 +318,7 @@ def cli() -> None:
                 invert_namespaces=args.invert_namespaces,
             )
     else:
-        grep_cli(
+        _grep_cli(
             args.query,
             flags,
             pagename=args.pagename,
@@ -336,4 +330,4 @@ def cli() -> None:
 
 
 if __name__ == "__main__":
-    cli()
+    _main()
