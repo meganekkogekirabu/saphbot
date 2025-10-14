@@ -82,9 +82,11 @@ def fetch(
             decomp.write(data)
 
     os.remove("dumps/" + filename)
-    os.remove("dumps/latest.xml")  # remove any previous symlink
 
-    os.symlink("dumps/" + filename[:-4], "dumps/latest.xml")
+    if os.path.exists("dumps/latest.xml"):
+        os.remove("dumps/latest.xml")
+
+    os.symlink("dumps/" + filename[:-4], "latest.xml")
 
 
 def _grep(
