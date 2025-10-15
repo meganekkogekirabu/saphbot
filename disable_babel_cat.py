@@ -64,12 +64,16 @@ def treat(page: User) -> User | None:
     if len(templates) == 0:
         return None
     for template in templates:
+        # template doesn't categorise, no reason to tag
+        if not template.has_param(1):
+            continue
+
         already_tagged = (
             template.get("inactive") == "1" if template.has_param("inactive") else False
         )
 
         if already_tagged:
-            return None
+            continue
 
         delta: timedelta = site.server_time() - last_edit[2]
         if delta >= timedelta(days=730):
