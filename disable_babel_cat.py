@@ -19,13 +19,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 from datetime import timedelta
-import re
+import mwparserfromhell
 import signal
 import sys
 import pywikibot
-from pywikibot.page import BasePage
+from pywikibot.page import BasePage, User
 from pywikibot.pagegenerators import PreloadingGenerator
 from pywikibot.exceptions import LockedPageError
+from lib.concurrent import ConcurrentBot
 
 signal.signal(signal.SIGINT, lambda *_: sys.exit(0))
 
@@ -38,27 +39,55 @@ with open("lists/babel_cat_ignore.txt", "r", encoding="utf-8") as file:
 site = pywikibot.Site()
 tl_page = pywikibot.Page(site, "Template:Babel")
 gen = BasePage(tl_page).getReferences(only_template_inclusion=True, namespaces=2)
+preload = PreloadingGenerator(gen)
 
-exp = re.compile(r"({{babel[^}]+)", flags=re.I)
 
-for page in PreloadingGenerator(gen):
+def treat(page: User) -> User | None:
     title = page.title()
+    if "/" in title or title in ignore:
+        return None
 
-    if "/" not in title and title not in ignore and "inactive=1" not in page.text:
-        last_edit: tuple | None = pywikibot.User(site, title).last_edit
+    # dummy edit to check if page is protected
+    try:
+        page.touch(quiet=True)
+    except LockedPageError:
+        return None
 
-        if last_edit is None:
-            continue
+    code = mwparserfromhell.parse(page.text)
 
-        try:
-            delta = (site.server_time() - last_edit[2]) >= timedelta(days=730)
+    last_edit = page.last_edit
+    if last_edit is None:
+        return None
 
-            if delta:
-                page.text = exp.sub(r"\1|inactive=1", page.text)
-                page.save(
-                    "mark users whose last contribution was more than 2 years "
-                    + "ago as inactive in Babel",
-                )
+    templates = code.filter_templates(matches=lambda tl: tl.name in ["Babel", "babel"])
 
-        except LockedPageError:
-            continue
+    if len(templates) == 0:
+        return None
+    for template in templates:
+        already_tagged = (
+            template.get("inactive") == "1" if template.has_param("inactive") else False
+        )
+
+        if already_tagged:
+            return None
+
+        delta: timedelta = site.server_time() - last_edit[2]
+        if delta >= timedelta(days=730):
+            template.add("inactive", "1")
+
+    text = str(code)
+    if text == page.text:
+        return None
+
+    page.text = text
+    return page
+
+
+concur = ConcurrentBot(
+    treat,
+    "mark users whose last contribution was more than 2 years ago "
+    + "as inactive in Babel",
+    preload,
+)
+
+concur.start()
