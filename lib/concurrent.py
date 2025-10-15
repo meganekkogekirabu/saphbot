@@ -47,14 +47,14 @@ class ConcurrentBot:
         self.save_queue = Queue(maxsize=5 * max_workers)
         self.executor = ThreadPoolExecutor(max_workers=max_workers)
 
-    def saver(self) -> None:
+    def _saver(self) -> None:
         while True:
             page = self.save_queue.get()
             page.save(self.summary)
             self.save_queue.task_done()
 
     def start(self) -> None:
-        Thread(target=self.saver, daemon=True).start()
+        Thread(target=self._saver, daemon=True).start()
         future_to_page = {
             self.executor.submit(self.treat, page): page for page in self.gen
         }
