@@ -20,7 +20,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 __all__ = ["ConcurrentBot"]
 
-from concurrent.futures import as_completed, ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor
 from queue import Queue
 from threading import Thread
 from typing import Callable, Iterable
@@ -53,16 +53,17 @@ class ConcurrentBot:
             page.save(self.summary)
             self.save_queue.task_done()
 
+    def _processor(self, page: Page) -> None:
+        try:
+            res = self.treat(page)
+            if res is not None:
+                self.save_queue.put(res)
+        except Exception as e:
+            print(f"error processing {page.title()}: {e}")
+
     def start(self) -> None:
-        Thread(target=self._saver, daemon=True).start()
-        future_to_page = {
-            self.executor.submit(self.treat, page): page for page in self.gen
-        }
-        for future in as_completed(future_to_page):
-            page = future.result()
-            if page is None:
-                continue
-            else:
-                self.save_queue.put(page)
-        self.save_queue.join()
+        saver = Thread(target=self._saver, daemon=True)
+        saver.start()
+        self.executor.map(self._processor, self.gen)
+        saver.join()
         self.executor.shutdown(wait=True)
