@@ -26,7 +26,7 @@ import pywikibot
 from pywikibot.page import BasePage, User
 from pywikibot.pagegenerators import PreloadingGenerator
 from pywikibot.exceptions import LockedPageError
-from lib.concurrent import ConcurrentBot
+from lib.multiprocessor import ConcurrentBot
 
 signal.signal(signal.SIGINT, lambda *_: sys.exit(0))
 
