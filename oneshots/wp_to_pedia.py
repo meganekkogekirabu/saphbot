@@ -48,16 +48,19 @@ def treat(page: Page) -> Page | None:
 
         pedia = Template("pedia")
 
-        if template.has(3):
-            alt = template.get(3)
-            pedia.add(2, alt)
-            if lang != "en":
-                pedia.add("lang", lang, after=2)
-        elif template.has(2):
+        if template.has(2):
             link = template.get(2)
             pedia.add(1, link)
-            if lang != "en":
+
+            if template.has(3):
+                alt = template.get(3)
+                pedia.add(2, alt)
+                if lang != "en":
+                    pedia.add("lang", lang, after=2)
+
+            elif lang != "en":
                 pedia.add("lang", lang, after=1)
+
         elif lang != "en":
             pedia.add("lang", lang)
 
