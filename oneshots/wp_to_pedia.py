@@ -41,12 +41,11 @@ def treat(page: Page) -> Page | None:
         return None
 
     for template in templates:
-        if not (template.has(1)):
-            return None
-
-        lang = template.get(1).value
-
         pedia = Template("pedia")
+
+        lang = "en"
+        if template.has(1):
+            lang = template.get(1).value
 
         if template.has(2):
             link = template.get(2).value
