@@ -44,16 +44,16 @@ def treat(page: Page) -> Page | None:
         if not (template.has(1)):
             return None
 
-        lang = template.get(1)
+        lang = template.get(1).value
 
         pedia = Template("pedia")
 
         if template.has(2):
-            link = template.get(2)
+            link = template.get(2).value
             pedia.add(1, link)
 
             if template.has(3):
-                alt = template.get(3)
+                alt = template.get(3).value
                 pedia.add(2, alt)
                 if lang != "en":
                     pedia.add("lang", lang, after=2)
@@ -66,7 +66,7 @@ def treat(page: Page) -> Page | None:
 
         for param in ["sc", "i", "nodot"]:
             if template.has(param):
-                val = template.get(param)
+                val = template.get(param).value
                 pedia.add(param, val)
 
         code.replace(template, pedia)
