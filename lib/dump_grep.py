@@ -142,6 +142,7 @@ def _grep(
 
 def grep(
     query: str,
+    callback: Callable[[str], None] | None = None,
     flags: int = 0,
     pagename: bool = False,
     namespaces: list[str] | None = None,
@@ -152,11 +153,13 @@ def grep(
     """
 
     iterator = etree.iterparse("dumps/latest.xml", events=("end",), tag=("{*}page"))
-    titles = []
 
-    def callback(title: str):
-        nonlocal titles
-        titles.append(title)
+    if callback is None:
+        titles = []
+
+        def callback(title: str):
+            nonlocal titles
+            titles.append(title)
 
     _grep(
         query,
