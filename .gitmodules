@@ -1,0 +1,3 @@
+[submodule "mwdump"]
+	path = mwdump
+	url = https://github.com/meganekkogekirabu/mwdump
