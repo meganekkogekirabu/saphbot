@@ -1,0 +1,13 @@
+[package]
+name = "mwdump"
+authors = ["Choi Madeleine <gankiann.niu@gmail.com>"]
+description = "Tool for grepping MediaWiki pages-meta-current-dumps"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow = "1.0.100"
+clap = { version = "4.5.49", features = ["derive"] }
+indicatif = "0.18.0"
+quick-xml = "0.38.3"
+regex = "1.12.2"
