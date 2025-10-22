@@ -21,8 +21,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import re
 import mwparserfromhell
 import pywikibot
-from pywikibot import Page
-from pywikibot.pagegenerators import PetScanPageGenerator
+from pywikibot import pagegenerators
 from lib.data_utils import Languages
 from lib.misc import merge_templates
 
@@ -48,13 +47,18 @@ def parse_cat(txt: str) -> str:
     return txt
 
 
+site = pywikibot.Site()
+cat = pywikibot.Category(
+    site, "Category:Entries with language name categories using raw markup by language"
+)
+gen = pagegenerators.CategorizedPageGenerator(cat, recurse=True, namespaces=[0, 118])
+
 is_category = re.compile(r"\[\[cat(?:egory):([^\]]+)\]\]", flags=re.I)
 
-
-def treat(page: Page) -> Page | None:
+for page in pagegenerators.PreloadingGenerator(gen):
     code = mwparserfromhell.parse(page.text)
 
-    # first pass: convert cat links to templates
+    # first pass: convert cat links to cln
 
     links = code.filter_wikilinks(
         matches=lambda link: is_category.search(str(link)) is not None
@@ -62,55 +66,16 @@ def treat(page: Page) -> Page | None:
 
     for link in links:
         title = str(link.title)[9:]
-        parts = title.split(":")
-
-        if len(parts) == 2:
-            lang, topic = parts
-            code.replace(link, f"{{{{C|{lang}|{topic}}}}}")
-        else:
-            template = parse_cat(title)
-            if template != title:
-                code.replace(link, template)
+        template = parse_cat(title)
+        if template != title:
+            code.replace(link, template)
 
     # second pass: merge cln templates
 
-    cln_templates = code.filter_templates(matches=lambda tl: tl.name == "cln")
-    merge_templates(code, cln_templates)
+    templates = code.filter_templates(matches=lambda tl: tl.name == "cln")
+    merge_templates(code, templates)
 
-    # third pass: merge c/C/topics templates
-
-    topic_templates = code.filter_templates(
-        matches=lambda tl: tl.name in ["topics", "c", "C"]
+    page.text = str(code)
+    page.save(
+        "replace raw langname category markup with {{[[Template:catlangname|cln]]}}"
     )
-
-    merge_templates(code, topic_templates)
-
-    text = str(code)
-    if text != page.text:
-        page.text = text
-        return page
-
-    return None
-
-
-site = pywikibot.Site()
-
-petscan = PetScanPageGenerator(
-    [
-        "Entries with language name categories using raw markup by language",
-        "Entries with topic categories using raw markup by language",
-    ],
-    subset_combination=False,
-    namespaces=[0, 118],
-    extra_options={
-        "depth": 1,
-    },
-)
-
-gen = petscan.query()
-
-for result in gen:
-    page = Page(result.title)
-    new = treat(page)
-    if new is not None:
-        new.save("clean up raw category markup")
