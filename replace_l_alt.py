@@ -4,7 +4,6 @@ from typing import Generator
 from lxml import etree  # pyright: ignore
 import mwparserfromhell
 from pywikibot import Page, Site
-from pywikibot.pagegenerators import PreloadingGenerator
 from lib.multiprocessor import ConcurrentBot
 
 signal.signal(signal.SIGINT, lambda *_: sys.exit(130))
@@ -79,7 +78,7 @@ def treat(page: Page) -> Page | None:
 concur = ConcurrentBot(
     treat,
     "replace {{[[Template:l|l]]}} with {{[[Template:alt|alt]]}} in alternative forms sections",
-    PreloadingGenerator(iter_pages()),
+    iter_pages(),
 )
 
 concur.start()
