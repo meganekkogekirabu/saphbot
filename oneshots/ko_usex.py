@@ -25,7 +25,7 @@ from pywikibot.pagegenerators import PreloadingGenerator
 site = Site()
 tl = Page(site, "Template:ko-usex")
 gen = BasePage(tl).getReferences(only_template_inclusion=True, namespaces=0)
-pattern = re.compile(r"{{ko(?:-(?:use)?x|koex)\|([^|]+)\|([^}]+)}}")
+pattern = re.compile(r"{{ko(?:-(?:use)?x|ex)\|([^|]+)\|([^}]+)}}")
 
 for page in PreloadingGenerator(gen):
     new = pattern.sub(r"{{ux|ko|\1|\2}}", page.text)
