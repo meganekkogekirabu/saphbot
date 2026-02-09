@@ -18,21 +18,23 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from datetime import timedelta
-import mwparserfromhell
 import signal
 import sys
+from datetime import timedelta
+
+import mwparserfromhell
 import pywikibot
+from pywikibot.exceptions import LockedPageError
 from pywikibot.page import BasePage, User
 from pywikibot.pagegenerators import PreloadingGenerator
-from pywikibot.exceptions import LockedPageError
+
 from lib.multiprocessor import ConcurrentBot
 
 signal.signal(signal.SIGINT, lambda *_: sys.exit(0))
 
 ignore = []
 
-with open("lists/babel_cat_ignore.txt", "r", encoding="utf-8") as file:
+with open("src/lists/babel_cat_ignore.txt", "r", encoding="utf-8") as file:
     for line in file:
         ignore.append(line)
 

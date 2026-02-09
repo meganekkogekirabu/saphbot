@@ -20,10 +20,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import re
 import signal
 import sys
-from InquirerPy import inquirer
+from typing import Callable
+
 import pywikibot
+from InquirerPy import inquirer
 from pywikibot import pagegenerators
 from pywikibot.page import BasePage
+
 from lib.misc import diff
 
 # pywikibot has an obnoxiously long traceback for sigint, just handle it here
@@ -62,6 +65,7 @@ options = inquirer.checkbox(
 gen = pagegenerators.CategorizedPageGenerator(cat)
 
 is_topic = re.match(r"([^:]+):(.+)", target)
+repl: Callable[[re.Match], str]
 
 if is_topic:
     lang, topic = is_topic.groups()
@@ -78,16 +82,10 @@ if is_topic:
         flags=re.I,
     )
 
-    def _repl(m):
-        return f"{{{{C|{lang}|{m.groups()[0] or ''}{new_topic}}}}}"
+    repl = lambda m: f"{{{{C|{lang}|{m.groups()[0] or ''}{new_topic}}}}}"
 else:
     update = re.compile(f"\\[\\[cat(?:egory)?:{target}\\]\\]", flags=re.I)
-
-    def _repl(_):
-        return f"[[{cat_renamed}]]"
-
-
-repl = _repl
+    repl = lambda _: f"[[{cat_renamed}]]"
 
 
 for page in pagegenerators.PreloadingGenerator(gen, 10):
