@@ -42,7 +42,7 @@ with open("src/lists/babel_cat_ignore.txt", "r", encoding="utf-8") as file:
 site = pywikibot.Site()
 tl_page = pywikibot.Page(site, "Template:Babel")
 gen = BasePage(tl_page).getReferences(only_template_inclusion=True, namespaces=2)
-preload = PreloadingGenerator(gen)
+preload = PreloadingGenerator(gen, quiet=True)
 
 
 def treat(page: User) -> Optional[User]:
