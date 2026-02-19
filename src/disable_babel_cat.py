@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+import logging
 import signal
 import sys
 from datetime import timedelta
@@ -30,6 +31,9 @@ from pywikibot.page import BasePage, User
 from pywikibot.pagegenerators import PreloadingGenerator
 
 from lib.multiprocessor import ConcurrentBot
+
+logger = logging.getLogger("saphbot.disable_babel_cat")
+logging.basicConfig(level=logging.INFO)
 
 signal.signal(signal.SIGINT, lambda *_: sys.exit(0))
 
