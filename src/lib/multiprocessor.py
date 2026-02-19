@@ -23,12 +23,12 @@ __all__ = ["ConcurrentBot"]
 from concurrent.futures import ThreadPoolExecutor
 from queue import Queue
 from threading import Thread
-from typing import Callable, Iterable
+from typing import Callable, Iterable, Optional
 from pywikibot.page import Page
 
 
 class ConcurrentBot:
-    treat: Callable[[Page], Page | None]
+    treat: Callable[[Page], Optional[Page]]
     gen: Iterable[Page]
     save_queue: Queue
     executor: ThreadPoolExecutor
@@ -36,7 +36,7 @@ class ConcurrentBot:
 
     def __init__(
         self,
-        treat: Callable[[Page], Page | None],
+        treat: Callable[[Page], Optional[Page]],
         summary: str,
         gen: Iterable[Page],
         max_workers: int = 5,
