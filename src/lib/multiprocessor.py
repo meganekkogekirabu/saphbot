@@ -21,10 +21,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 __all__ = ["ConcurrentBot"]
 
 from concurrent.futures import ThreadPoolExecutor
+import logging
 from queue import Queue
 from threading import Thread
 from typing import Callable, Iterable, Optional
 from pywikibot.page import Page
+
+logger = logging.getLogger("saphbot.lib.multiprocessor")
 
 
 class ConcurrentBot:
@@ -50,16 +53,29 @@ class ConcurrentBot:
     def _saver(self) -> None:
         while True:
             page = self.save_queue.get()
-            page.save(self.summary)
+            logger.info(
+                f"\033[1;31mConcurrentBot._saver\033[0m: attempting to save {page.title()}"
+            )
+            try:
+                page.save(self.summary)
+            except Exception as e:
+                logger.error(
+                    f"\033[1;31mConcurrentBot._saver\033[0m: \033[1;31mfailed\033[0m to save {page.title()}: {e}"
+                )
             self.save_queue.task_done()
 
     def _processor(self, page: Page) -> None:
         try:
+            logger.info(
+                f"\033[1;32mConcurrentBot._processor\033[0m: processing {page.title()}"
+            )
             res = self.treat(page)
             if res is not None:
                 self.save_queue.put(res)
         except Exception as e:
-            print(f"error processing {page.title()}: {e}")
+            logger.error(
+                f"\033[1;32mConcurrentBot._processor\033[0m: error processing {page.title()}: {e}"
+            )
 
     def start(self) -> None:
         saver = Thread(target=self._saver, daemon=True)
