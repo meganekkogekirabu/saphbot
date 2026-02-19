@@ -10,7 +10,6 @@ apicache
 logs
 pywikibot-SaphBot.lwp
 throttle.ctrl
-user-config.py
 
 # personal
 dumps
