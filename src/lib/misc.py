@@ -50,6 +50,7 @@ def diff(a: str, b: str) -> str:
     return "\n".join(coloured)
 
 
+# FIXME: Leaves multiple blank lines in some cases.
 def merge_templates(code: Wikicode, templates: list[Template]) -> None:
     """
     Merge a list of templates into one, preserving the first
