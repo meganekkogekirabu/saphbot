@@ -21,6 +21,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import signal
 import sys
 from datetime import timedelta
+from typing import Optional
 
 import mwparserfromhell
 import pywikibot
@@ -44,7 +45,7 @@ gen = BasePage(tl_page).getReferences(only_template_inclusion=True, namespaces=2
 preload = PreloadingGenerator(gen)
 
 
-def treat(page: User) -> User | None:
+def treat(page: User) -> Optional[User]:
     title = page.title()
     if "/" in title or title in ignore:
         return None
