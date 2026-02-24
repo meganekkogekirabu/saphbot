@@ -19,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import signal
 import sys
+from typing import Optional
 import mwparserfromhell
 from mwparserfromhell.nodes import Template
 from pywikibot import Site
@@ -33,7 +34,7 @@ gen = BasePage(tl_page).getReferences(only_template_inclusion=True)
 preload = PreloadingGenerator(gen)
 
 
-def treat(page: Page) -> Page | None:
+def treat(page: Page) -> Optional[Page]:
     code = mwparserfromhell.parse(page.text)
     templates = code.filter_templates(matches=lambda tl: tl.name == "R:wp")
 

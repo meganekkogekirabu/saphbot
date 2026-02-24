@@ -19,7 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import signal
 import sys
-from typing import Generator
+from typing import Generator, Optional
 
 import mwparserfromhell
 from lxml import etree  # pyright: ignore
@@ -68,7 +68,7 @@ def iter_pages() -> Generator[Page, None, None]:
             break
 
 
-def treat(page: Page) -> Page | None:
+def treat(page: Page) -> Optional[Page]:
     code = mwparserfromhell.parse(page.text)
     sections = code.get_sections()
 

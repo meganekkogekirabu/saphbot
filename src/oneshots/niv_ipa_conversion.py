@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 import re
+from typing import Optional
 from pywikibot import Site
 from pywikibot.page import BasePage, Page
 from pywikibot.pagegenerators import PreloadingGenerator
@@ -30,7 +31,7 @@ preload = PreloadingGenerator(gen)
 niv_IPA = re.compile("^{{niv-IPA([^}]*)}}", flags=re.M)
 
 
-def treat(page: Page) -> Page | None:
+def treat(page: Page) -> Optional[Page]:
     def repl(m: re.Match) -> str:
         param = m.group(1)
 
