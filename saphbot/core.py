@@ -27,12 +27,15 @@ from threading import Thread
 from typing import Iterable, Optional
 from typing_extensions import Self
 
+from lib.misc import normalise
+
 logger = logging.getLogger("saphbot.core")
 
 
 @dataclass
 class SaphBotOptions:
     dry_run: bool
+    normalise: bool
 
 
 # Subclasses must implement gen, summary, and treat.
@@ -100,6 +103,8 @@ class SaphBot:
             logger.debug(f"processing {page.title()}")
             new = self.treat(page)
             if new is not None:
+                if self.__options.normalise:
+                    new = normalise(new)
                 self._save_queue.put(new)
         except Exception as e:
             logger.error(f"error processing {page.title()}: {e}")

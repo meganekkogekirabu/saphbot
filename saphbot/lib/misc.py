@@ -22,6 +22,8 @@ __all__ = ["diff", "merge_templates"]
 import difflib
 from mwparserfromhell.nodes import Template
 from mwparserfromhell.wikicode import Wikicode
+from pywikibot.page import Page
+import re
 
 
 def diff(a: str, b: str) -> str:
@@ -74,3 +76,15 @@ def merge_templates(code: Wikicode, templates: list[Template]) -> None:
         for category in categories:
             at = len(cats[lang].params) + 1
             cats[lang].add(at, category)
+
+
+def normalise(page: Page) -> Page:
+    text = page.text
+    text = re.sub(r"\t", " ", text)
+    text = re.sub(r"^([;:#*]+)(?=[^;:#*\s])", r"\1 ", text)
+    text = re.sub(r"(?:\n *)*\n==", "\n\n==", text)
+    text = re.sub(r"^((?!=)[^\n]*(?:\n(?!=)[^\n]*?)*?)\n+==", r"\1\n==", text)
+    text = re.sub(r"\n +| +\n", "\n", text)
+    text = re.sub(r"(^|\n)(=+) *([^\n]+?) *\2(\n|$)", r"\1\2\3\2\4", text)
+    page.text = text
+    return page

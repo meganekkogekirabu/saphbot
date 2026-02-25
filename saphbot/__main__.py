@@ -43,6 +43,12 @@ def get_arguments() -> argparse.Namespace:
     parser.add_argument(
         "-v", "--verbose", action="store_true", help="Enable debug logging"
     )
+    parser.add_argument(
+        "-n",
+        "--normalise",
+        action="store_true",
+        help="Run normalisation per [[WT:NORM]] before saving",
+    )
     return parser.parse_args()
 
 
@@ -70,7 +76,7 @@ def main():
     importlib.import_module(f"scripts.{args.module}")
     ModuleBot = SaphBot.get_entry()
     logger.debug(f"found entry point: {ModuleBot.__name__}")
-    options = SaphBotOptions(dry_run=args.dry_run)
+    options = SaphBotOptions(dry_run=args.dry_run, normalise=args.normalise)
     ModuleBot(options)._start()
 
 
