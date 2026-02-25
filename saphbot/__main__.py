@@ -1,7 +1,7 @@
 """
 Main entry point for running scripts from the command line.
 
-Copyright (c) 2025-2026 Choi Madeleine
+Copyright (c) 2026 Choi Madeleine
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
