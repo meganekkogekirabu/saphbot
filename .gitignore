@@ -14,3 +14,6 @@ throttle.ctrl
 # personal
 dumps
 lists/private
+
+# garbage
+.DS_Store
