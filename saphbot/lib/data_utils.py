@@ -19,56 +19,73 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 __all__ = ["WiktData", "Languages", "Scripts"]
 
-import requests
+from typing import DefaultDict
+from cachetools import TTLCache
+from collections import defaultdict
 import json
+import logging
+import threading
+import requests
+
+logger = logging.getLogger("saphbot.lib.data_utils")
 
 
-def json_from_wikitext(title: str) -> dict:
-    response = requests.get(
-        "https://en.wiktionary.org/w/api.php",
-        {
-            "action": "parse",
-            "format": "json",
-            "formatversion": "2",
-            "page": title,
-            "prop": "wikitext",
-        },
-        headers={
-            "User-Agent": "SaphBot",
-        },
-    )
+cache = TTLCache(maxsize=1024, ttl=3600)
+locks: DefaultDict = defaultdict(threading.RLock)
 
-    if response.status_code != 200:
-        raise Exception(f"API returned status code {response.status_code}")
-        return {}
 
-    body = response.json()
-    if body.get("error"):
-        raise Exception(f"Could not find page {title}:", body["error"])
-        return {}
+def _fetch_json(title: str) -> dict[str, str]:
+    with locks[title]:
+        if title in cache:
+            logger.debug(f"cache hit for {title.split('/')[1]}")
+            return cache[title]
 
-    return json.loads(body["parse"]["wikitext"])
+        logger.info(f"fetching JSON from {title.split('/')[1]}")
+
+        response = requests.get(
+            "https://en.wiktionary.org/w/api.php",
+            {
+                "action": "parse",
+                "format": "json",
+                "formatversion": "2",
+                "page": title,
+                "prop": "wikitext",
+            },
+            headers={
+                "User-Agent": "SaphBot",
+            },
+        )
+
+        response.raise_for_status()
+
+        body = response.json()
+        if body.get("error"):
+            raise Exception(f"could not find page {title}:", body["error"])
+
+        res = json.loads(body["parse"]["wikitext"])
+        cache[title] = res
+        return res
 
 
 class WiktData:
     def __init__(self, module: str):
-        self.canonical_names: dict[str, str] = {}
-        self.language_codes: dict[str, str] = {}
-        self.module = module
+        self._canonical_names: dict[str, str] = {}
+        self._codes: dict[str, str] = {}
+        self._module = module
 
     def get_canonical_names(self):
-        if self.canonical_names == {}:
-            self.canonical_names = json_from_wikitext(
-                f"Module:{self.module}/canonical names.json"
+        if self._canonical_names == {}:
+            self._canonical_names = _fetch_json(
+                f"Module:{self._module}/canonical names.json"
             )
-        return self.canonical_names
+        return self._canonical_names
 
     def get_codes(self):
-        if self.language_codes == {}:
-            self.language_codes = json_from_wikitext(
-                f"Module:{self.module}/code to canonical name.json"
+        if self._codes == {}:
+            self._codes = _fetch_json(
+                f"Module:{self._module}/code to canonical name.json"
             )
-        return self.language_codes
+        return self._codes
 
 
 class Languages(WiktData):
