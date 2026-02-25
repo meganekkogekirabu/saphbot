@@ -1,4 +1,4 @@
-usernames["wiktionary"]["en"] = "SaphBot"
+usernames["wiktionary"]["en"] = "SaphBot" # type: ignore
 family = "wiktionary"
 mylang = "en"
-put_throttle = 0
+put_throttle = 1
