@@ -1,7 +1,7 @@
 """
 Utilities for fetching JSON from Module:languages & related.
 
-Copyright (c) 2025 Choi Madeleine
+Copyright (c) 2025-2026 Choi Madeleine
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -19,22 +19,29 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 __all__ = ["WiktData", "Languages", "Scripts"]
 
-from typing import DefaultDict
+import time
+from typing import Optional
 from cachetools import TTLCache
 from collections import defaultdict
 import json
 import logging
 import threading
 import requests
+import sys
 
 logger = logging.getLogger("saphbot.lib.data_utils")
 
 
 cache = TTLCache(maxsize=1024, ttl=3600)
-locks: DefaultDict = defaultdict(threading.RLock)
+locks: defaultdict = defaultdict(threading.RLock)
+
+BACKOFF = 5
 
 
 def _fetch_json(title: str) -> dict[str, str]:
+    """
+    Fetch the wikitext at `title` and return as a dict parsed from JSON.
+    """
     with locks[title]:
         if title in cache:
             logger.debug(f"cache hit for {title.split('/')[1]}")
@@ -42,21 +49,34 @@ def _fetch_json(title: str) -> dict[str, str]:
 
         logger.info(f"fetching JSON from {title.split('/')[1]}")
 
-        response = requests.get(
-            "https://en.wiktionary.org/w/api.php",
-            {
-                "action": "parse",
-                "format": "json",
-                "formatversion": "2",
-                "page": title,
-                "prop": "wikitext",
-            },
-            headers={
-                "User-Agent": "SaphBot",
-            },
-        )
+        response: Optional[requests.Response] = None
 
-        response.raise_for_status()
+        for _ in range(BACKOFF):
+            # TODO: convert this to use pywikibot's API wrapper?
+            response = requests.get(
+                "https://en.wiktionary.org/w/api.php",
+                {
+                    "action": "parse",
+                    "format": "json",
+                    "formatversion": "2",
+                    "page": title,
+                    "prop": "wikitext",
+                },
+                headers={
+                    "User-Agent": "SaphBot",
+                },
+            )
+
+            if response.status_code == 429:
+                logger.error("rate limited, trying again in 5 seconds")
+                time.sleep(5)
+                continue
+            else:
+                break
+
+        if response is None:
+            logger.fatal("failed to fetch JSON")
+            sys.exit(1)
 
         body = response.json()
         if body.get("error"):

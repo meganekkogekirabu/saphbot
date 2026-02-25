@@ -1,3 +1,4 @@
+cachetools
 colorlog
 InquirerPy
 lxml

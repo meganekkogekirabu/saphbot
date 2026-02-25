@@ -1,7 +1,7 @@
 """
 Replace {{l}} with {{alt}} in alternative forms sections.
 
-Copyright (c) 2025 Choi Madeleine
+Copyright (c) 2025-2026 Choi Madeleine
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -17,17 +17,13 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-import signal
-import sys
+import mwparserfromhell
+from lxml import etree  # type: ignore
+from pywikibot import Page, Site
+from pywikibot.pagegenerators import PreloadingGenerator
 from typing import Generator, Optional
 
-import mwparserfromhell
-from lxml import etree  # pyright: ignore
-from pywikibot import Page, Site
-
-from lib.multiprocessor import ConcurrentBot
-
-signal.signal(signal.SIGINT, lambda *_: sys.exit(130))
+from core import SaphBot
 
 site = Site()
 
@@ -68,39 +64,34 @@ def iter_pages() -> Generator[Page, None, None]:
             break
 
 
-def treat(page: Page) -> Optional[Page]:
-    code = mwparserfromhell.parse(page.text)
-    sections = code.get_sections()
+class ReplaceLAltBot(SaphBot):
+    gen = PreloadingGenerator(iter_pages())
+    summary = "replace {{[[Template:l|l]]}} with {{[[Template:alt|alt]]}} in alternative forms sections"
 
-    for section in sections:
-        try:
-            heading = section.get(0)
-        except IndexError:
-            continue
+    def treat(self, page: Page) -> Optional[Page]:
+        code = mwparserfromhell.parse(page.text)
+        sections = code.get_sections()
 
-        if heading.title != "Alternative forms":
-            continue
+        for section in sections:
+            try:
+                heading = section.get(0)
+            except IndexError:
+                continue
 
-        templates = section.filter_templates(matches=lambda t: t.name == "l")
+            if heading.title != "Alternative forms":
+                continue
 
-        if len(templates) == 0:
-            continue
+            templates = section.filter_templates(matches=lambda t: t.name == "l")
 
-        for template in templates:
-            template.name = "alt"
+            if len(templates) == 0:
+                continue
 
-    text = str(code)
-    if text != page.text:
-        page.text = text
-        return page
+            for template in templates:
+                template.name = "alt"
 
-    return None
+        text = str(code)
+        if text != page.text:
+            page.text = text
+            return page
 
-
-concur = ConcurrentBot(
-    treat,
-    "replace {{[[Template:l|l]]}} with {{[[Template:alt|alt]]}} in alternative forms sections",
-    iter_pages(),
-)
-
-concur.start()
+        return None

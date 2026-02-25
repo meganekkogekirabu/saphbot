@@ -2,7 +2,7 @@
 Convert raw langname category links like [[Category:English blabla]] to use {{cln}},
 like {{cln|en|blabla}}.
 
-Copyright (c) 2025 Choi Madeleine
+Copyright (c) 2025-2026 Choi Madeleine
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -20,12 +20,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import re
 import mwparserfromhell
-import pywikibot
-from pywikibot import pagegenerators
+from pywikibot import Site
+from pywikibot.page import Category, Page
+from pywikibot.pagegenerators import CategorizedPageGenerator, PreloadingGenerator
+from typing import Optional
+
+from core import SaphBot
 from lib.data_utils import Languages
 from lib.misc import merge_templates
-
-languages = Languages()
 
 
 def parse_cat(txt: str) -> str:
@@ -47,35 +49,42 @@ def parse_cat(txt: str) -> str:
     return txt
 
 
-site = pywikibot.Site()
-cat = pywikibot.Category(
+site = Site()
+cat = Category(
     site, "Category:Entries with language name categories using raw markup by language"
 )
-gen = pagegenerators.CategorizedPageGenerator(cat, recurse=True, namespaces=[0, 118])
 
 is_category = re.compile(r"\[\[cat(?:egory):([^\]]+)\]\]", flags=re.I)
 
-for page in pagegenerators.PreloadingGenerator(gen):
-    code = mwparserfromhell.parse(page.text)
+languages = Languages()
 
-    # first pass: convert cat links to cln
 
-    links = code.filter_wikilinks(
-        matches=lambda link: is_category.search(str(link)) is not None
-    )
-
-    for link in links:
-        title = str(link.title)[9:]
-        template = parse_cat(title)
-        if template != title:
-            code.replace(link, template)
-
-    # second pass: merge cln templates
-
-    templates = code.filter_templates(matches=lambda tl: tl.name == "cln")
-    merge_templates(code, templates)
-
-    page.text = str(code)
-    page.save(
+class LangnameCategoriesRawBot(SaphBot):
+    gen = CategorizedPageGenerator(cat, recurse=True, namespaces=[0, 118])
+    gen = PreloadingGenerator(gen, quiet=True)
+    summary = (
         "replace raw langname category markup with {{[[Template:catlangname|cln]]}}"
     )
+
+    def treat(self, page: Page) -> Optional[Page]:
+        code = mwparserfromhell.parse(page.text)
+
+        # first pass: convert cat links to cln
+
+        links = code.filter_wikilinks(
+            matches=lambda link: is_category.search(str(link)) is not None
+        )
+
+        for link in links:
+            title = str(link.title)[9:]
+            template = parse_cat(title)
+            if template != title:
+                code.replace(link, template)
+
+        # second pass: merge cln templates
+
+        templates = code.filter_templates(matches=lambda tl: tl.name == "cln")
+        merge_templates(code, templates)
+
+        page.text = str(code)
+        return page

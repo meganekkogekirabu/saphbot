@@ -1,6 +1,8 @@
 """
 Remove redundant `|head=` parameters from headword templates.
 
+Copyright (c) 2025-2026 Choi Madeleine
+
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
@@ -20,7 +22,11 @@ import signal
 import sys
 import mwparserfromhell
 import pywikibot
+from pywikibot.page import Page
 from pywikibot.pagegenerators import CategorizedPageGenerator, PreloadingGenerator
+from typing import Optional
+
+from core import SaphBot
 
 signal.signal(signal.SIGINT, lambda *_: sys.exit(130))
 
@@ -28,46 +34,39 @@ site = pywikibot.Site()
 cat = pywikibot.Category(
     site, "Category:Terms with redundant head parameter by language"
 )
-gen = CategorizedPageGenerator(cat, recurse=True, namespaces=[0, 100, 118])
 
 # ignore titles which contain apostrophes or dashes
 # FIXME: hack; should properly update such pages with `|nolink=1`
 ignore = re.compile("['\\-]")
 
-for page in PreloadingGenerator(gen):
-    title = page.title()
 
-    if ignore.search(title):
-        continue
+class RedundantHeadParameterBot(SaphBot):
+    gen = CategorizedPageGenerator(cat, recurse=True, namespaces=[0, 100, 118])
+    gen = PreloadingGenerator(gen)
+    summary = "remove redundant |head= parameters from headword templates"
 
-    code = mwparserfromhell.parse(page.text)
-    templates = code.filter_templates()
+    def treat(self, page: Page) -> Optional[Page]:
+        title = page.title()
 
-    changes_made = 0
+        if ignore.search(title):
+            return None
 
-    words = title.split(" ")
-    is_multiword = len(words) > 1
+        code = mwparserfromhell.parse(page.text)
+        templates = code.filter_templates()
 
-    linked_title = None
-    if is_multiword:
-        linked_title = " ".join(f"[[{word}]]" for word in words)
+        words = title.split(" ")
+        is_multiword = len(words) > 1
 
-    for template in templates:
-        head = template.get("head") if template.has_param("head") else None
+        linked_title = None
+        if is_multiword:
+            linked_title = " ".join(f"[[{word}]]" for word in words)
 
-        if head is not None:
-            if is_multiword:
-                if head.value == linked_title:
+        for template in templates:
+            head = template.get("head") if template.has_param("head") else None
+
+            if head is not None:
+                if is_multiword and head.value == linked_title or head.value == title:
                     template.remove(head)
-                    changes_made += 1
-            else:
-                if head.value == title:
-                    template.remove(head)
-                    changes_made += 1
 
-    page.text = str(code)
-    changes = "change" if changes_made == 1 else "changes"
-    page.save(
-        "remove redundant |head= parameters from headword "
-        + f"templates ({changes_made} {changes} made)"
-    )
+        page.text = str(code)
+        return page
