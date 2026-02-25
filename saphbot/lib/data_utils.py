@@ -19,15 +19,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 __all__ = ["WiktData", "Languages", "Scripts"]
 
-import time
-from typing import Optional
 from cachetools import TTLCache
 from collections import defaultdict
 import json
 import logging
+from pywikibot import Page, Site
 import threading
-import requests
-import sys
 
 logger = logging.getLogger("saphbot.lib.data_utils")
 
@@ -49,41 +46,10 @@ def _fetch_json(title: str) -> dict[str, str]:
 
         logger.info(f"fetching JSON from {title.split('/')[1]}")
 
-        response: Optional[requests.Response] = None
-
-        for _ in range(BACKOFF):
-            # TODO: convert this to use pywikibot's API wrapper?
-            response = requests.get(
-                "https://en.wiktionary.org/w/api.php",
-                {
-                    "action": "parse",
-                    "format": "json",
-                    "formatversion": "2",
-                    "page": title,
-                    "prop": "wikitext",
-                },
-                headers={
-                    "User-Agent": "SaphBot",
-                },
-            )
-
-            if response.status_code == 429:
-                logger.error("rate limited, trying again in 5 seconds")
-                time.sleep(5)
-                continue
-            else:
-                break
-
-        if response is None:
-            logger.fatal("failed to fetch JSON")
-            sys.exit(1)
-
-        body = response.json()
-        if body.get("error"):
-            raise Exception(f"could not find page {title}:", body["error"])
-
-        res = json.loads(body["parse"]["wikitext"])
+        page = Page(Site(), title)
+        res = json.loads(page.text)
         cache[title] = res
+
         return res
 
 
