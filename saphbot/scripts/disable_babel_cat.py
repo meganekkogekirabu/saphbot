@@ -109,5 +109,5 @@ class DisableBabelCatBot(SaphBot):
             logger.debug("cache hit")
             return None
         result = self.__treat(page)
-        cache[title] = True
+        cache.add(title, True, expire=60 * 60 * 24)
         return result
