@@ -57,14 +57,14 @@ class WiktData:
         self._codes: dict[str, str] = {}
         self._module = module
 
-    def get_canonical_names(self):
+    def get_canonical_names(self) -> dict[str, str]:
         if self._canonical_names == {}:
             self._canonical_names = _fetch_json(
                 f"Module:{self._module}/canonical names.json"
             )
         return self._canonical_names
 
-    def get_codes(self):
+    def get_codes(self) -> dict[str, str]:
         if self._codes == {}:
             self._codes = _fetch_json(
                 f"Module:{self._module}/code to canonical name.json"
