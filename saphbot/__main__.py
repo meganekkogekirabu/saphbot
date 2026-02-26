@@ -58,7 +58,7 @@ def setup_logger(verbose: bool):
             "%(log_color)s"
             "%(asctime)s.%(msecs)03d "
             "%(bold)s%(levelname)-8s%(reset)s"
-            "%(bold)s%(name)s%(reset)s: "
+            "%(bold)s%(name)s%(reset)s (%(threadName)s): "
             "%(message)s"
         ),
         datefmt="%H:%M:%S",
