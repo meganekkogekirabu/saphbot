@@ -17,17 +17,14 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from typing import Optional
-import pywikibot
-from pywikibot import Page
+from pywikibot import Site
+from pywikibot.page import Category, Page
 from pywikibot.pagegenerators import CategorizedPageGenerator, PreloadingGenerator
 
 from core import SaphBot
 
-site = pywikibot.Site()
-cat = pywikibot.Category(
-    site, "Category:Entries missing Template:reconstructed by language"
-)
+site = Site()
+cat = Category(site, "Category:Entries missing Template:reconstructed by language")
 
 
 class AddMissingReconstructedBot(SaphBot):
@@ -35,6 +32,6 @@ class AddMissingReconstructedBot(SaphBot):
     gen = PreloadingGenerator(gen, quiet=True)
     summary = "add {{[[Template:reconstructed|reconstructed]]}}"
 
-    def treat(self, page: Page) -> Optional[Page]:
+    def treat(self, page: Page) -> Page:
         page.text = "{{reconstruction}}\n" + page.text
         return page
