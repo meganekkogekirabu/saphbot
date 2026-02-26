@@ -21,6 +21,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 from datetime import timedelta
+import logging
+import diskcache
 import mwparserfromhell
 from pywikibot import Site
 from pywikibot.exceptions import LockedPageError
@@ -39,6 +41,10 @@ ignore = (
 site = Site()
 tl_page = BasePage(site, "Template:Babel")
 
+cache = diskcache.Cache("./.saphbot_cache")
+
+logger = logging.getLogger("saphbot.scripts.disable_babel_cat")
+
 
 class DisableBabelCatBot(SaphBot):
     gen = tl_page.getReferences(only_template_inclusion=True, namespaces=2)
@@ -48,7 +54,7 @@ class DisableBabelCatBot(SaphBot):
         "years ago as inactive in Babel"
     )
 
-    def treat(self, page: User) -> Optional[User]:  # pyright: ignore
+    def __treat(self, page: User) -> Optional[User]:
         title = page.title()
         if "/" in title or title in ignore:
             return None
@@ -94,4 +100,14 @@ class DisableBabelCatBot(SaphBot):
             return None
 
         page.text = text
+
         return page
+
+    def treat(self, page: User) -> Optional[User]:  # type: ignore
+        title = page.title()
+        if title in cache:
+            logger.debug("cache hit")
+            return None
+        result = self.__treat(page)
+        cache[title] = True
+        return result

@@ -1,5 +1,6 @@
 cachetools
 colorlog
+diskcache
 InquirerPy
 lxml
 mwparserfromhell
