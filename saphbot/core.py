@@ -50,7 +50,7 @@ class SaphBot:
     def treat(self, page: Page) -> Optional[Page]:
         pass
 
-    def __init__(self, options: SaphBotOptions) -> None:
+    def __init__(self, options: SaphBotOptions):
         self.__options = options
         self._save_queue = Queue(maxsize=25)
         self._saver = self._saver_dry if self.__options.dry_run else self._saver_wet
@@ -98,7 +98,7 @@ class SaphBot:
             logger.info(f"dry run: saving {page.title()}")
             self._save_queue.task_done()
 
-    def _processor(self, page: Page) -> None:
+    def _processor(self, page: Page):
         try:
             logger.debug(f"processing {page.title()}")
             new = self.treat(page)
