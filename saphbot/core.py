@@ -50,11 +50,11 @@ class SaphBot:
     def treat(self, page: Page) -> Optional[Page]:
         pass
 
-    def __init__(self, options: SaphBotOptions, max_workers: int = 5) -> None:
+    def __init__(self, options: SaphBotOptions) -> None:
         self.__options = options
-        self._save_queue = Queue(maxsize=max_workers * 5)
+        self._save_queue = Queue(maxsize=25)
         self._saver = self._saver_dry if self.__options.dry_run else self._saver_wet
-        self._executor = ThreadPoolExecutor(max_workers)
+        self._executor = ThreadPoolExecutor()
 
     # Subclass bullshittery.
 
