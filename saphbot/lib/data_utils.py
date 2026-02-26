@@ -32,8 +32,6 @@ logger = logging.getLogger("saphbot.lib.data_utils")
 cache = TTLCache(maxsize=1024, ttl=3600)
 locks: defaultdict = defaultdict(threading.RLock)
 
-BACKOFF = 5
-
 
 def _fetch_json(title: str) -> dict[str, str]:
     """
