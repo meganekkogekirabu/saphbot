@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 """
 Find pages using AI images.
 

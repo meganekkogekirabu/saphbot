@@ -1,3 +1,5 @@
+#!/usr/bin/env python3 saphbot
+
 """
 Replace {{l}} with {{alt}} in alternative forms sections.
 

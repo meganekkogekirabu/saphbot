@@ -1,3 +1,5 @@
+#!/usr/bin/env python3 saphbot
+
 """
 Add {{reconstructed}} to pages in the Reconstruction namespace which are missing it.
 

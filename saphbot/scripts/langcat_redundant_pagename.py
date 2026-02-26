@@ -1,3 +1,5 @@
+#!/usr/bin/env python3 saphbot
+
 """
 Remove redundant first parameters from {{langcat}}, since it defaults to the pagename.
 

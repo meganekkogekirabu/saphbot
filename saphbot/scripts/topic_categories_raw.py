@@ -1,3 +1,5 @@
+#!/usr/bin/env python3 saphbot -n
+
 """
 Replace raw topic category links like [[Category:en:Topic]] with {{C}}, like {{C|en|Topic}}.
 

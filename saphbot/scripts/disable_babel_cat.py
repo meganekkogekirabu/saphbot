@@ -1,3 +1,5 @@
+#!/usr/bin/env python3 saphbot
+
 """
 Add the `inactive=1` flag to Babel for users whose last contribution was more than 2 years ago.
 Discussion: [[Wiktionary:Beer parlour/2025/April#Disabling Babel categorisation for inactive users]]

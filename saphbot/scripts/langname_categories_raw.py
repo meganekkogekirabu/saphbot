@@ -1,3 +1,5 @@
+#!/usr/bin/env python3 saphbot -n
+
 """
 Convert raw langname category links like [[Category:English blabla]] to use {{cln}},
 like {{cln|en|blabla}}.

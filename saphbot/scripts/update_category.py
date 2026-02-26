@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 """
 Interactive script for moving a category.
 

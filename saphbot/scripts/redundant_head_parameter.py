@@ -1,3 +1,5 @@
+#!/usr/bin/env python3 saphbot
+
 """
 Remove redundant `|head=` parameters from headword templates.
 

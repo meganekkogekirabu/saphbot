@@ -70,13 +70,26 @@ def setup_logger(verbose: bool):
     logger.setLevel(logging.DEBUG if verbose else logging.INFO)
 
 
+def normalise_module_name(module_name: str) -> str:
+    if "/" not in module_name:
+        return module_name
+    else:
+        # Running directly as e.g. saphbot/scripts/[...].py
+        return module_name.split("/")[-1][:-3]
+
+
 def main():
     args = get_arguments()
     setup_logger(verbose=args.verbose)
-    importlib.import_module(f"scripts.{args.module}")
+
+    module = normalise_module_name(args.module)
+    importlib.import_module(f"scripts.{module}")
+
     ModuleBot = SaphBot.get_entry()
     logger.debug(f"found entry point: {ModuleBot.__name__}")
+
     options = SaphBotOptions(dry_run=args.dry_run, normalise=args.normalise)
+
     ModuleBot(options)._start()
 
 
