@@ -73,9 +73,9 @@ class SaphBot:
             raise RuntimeError
         return cls.__subclass
 
-    # To avoid having a check on self.__options every
-    # time we save, initialise with one of four separate
-    # versions of _saver based on it.
+    # To avoid having a check on self.__options.dry_run every
+    # time we save, initialise with one of two separate
+    # versions of saver.
 
     def _saver_wet(self):
         while True:
