@@ -39,7 +39,7 @@ is_category = re.compile(r"\[\[cat(?:egory):([^\]]+)\]\]", flags=re.I)
 
 class TopicCategoriesRawBot(SaphBot):
     gen = CategorizedPageGenerator(cat, recurse=True, namespaces=[0, 118])
-    gen = PreloadingGenerator(gen)
+    gen = PreloadingGenerator(gen, quiet=True)
     summary = "replace raw topic category markup with {{[[Template:topics|C]]}}"
 
     def treat(self, page: Page) -> Optional[Page]:
