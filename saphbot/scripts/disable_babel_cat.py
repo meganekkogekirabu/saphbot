@@ -28,7 +28,6 @@ import diskcache
 import mwparserfromhell
 from core import SaphBot
 from pywikibot import Site
-from pywikibot.exceptions import LockedPageError
 from pywikibot.page import BasePage, User
 from pywikibot.pagegenerators import PreloadingGenerator
 
@@ -47,7 +46,9 @@ logger = logging.getLogger("saphbot.scripts.disable_babel_cat")
 
 
 class DisableBabelCatBot(SaphBot):
-    gen = tl_page.getReferences(only_template_inclusion=True, namespaces=2)
+    gen = tl_page.getReferences(
+        only_template_inclusion=True, namespaces=2, content=True
+    )
     gen = PreloadingGenerator(gen, quiet=True)
     summary = (
         "mark users whose last contribution was more than 2 "
@@ -58,10 +59,15 @@ class DisableBabelCatBot(SaphBot):
 
     def __treat(self, page: User) -> Optional[User]:
         title = page.title()
-        if "/" in title or title in ignore:
-            return None
+        text = page.text
 
-        if not page.botMayEdit():
+        if (
+            "/" in title
+            or title in ignore
+            or not page.botMayEdit()
+            or "Babel" not in text
+            or "babel" not in text
+        ):
             return None
 
         code = mwparserfromhell.parse(page.text)
@@ -70,9 +76,9 @@ class DisableBabelCatBot(SaphBot):
         if last_edit is None:
             return None
 
-        templates = code.filter_templates(
-            matches=lambda tl: tl.name in ["Babel", "babel"]
-        )
+        templates = [
+            tl for tl in code.filter_templates() if tl.name in ["Babel", "babel"]
+        ]
 
         if len(templates) == 0:
             return None
@@ -88,17 +94,13 @@ class DisableBabelCatBot(SaphBot):
             )
 
             if already_tagged:
-                continue
+                return None
 
             delta = self._server_time - last_edit[2]
             if delta >= timedelta(days=730):
                 template.add("inactive", "1")
 
-        text = str(code)
-        if text == page.text:
-            return None
-
-        page.text = text
+        page.text = str(code)
 
         return page
 
