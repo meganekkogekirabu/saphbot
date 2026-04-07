@@ -19,13 +19,14 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from functools import lru_cache
-from pywikibot import Category, Page, Site
-from pywikibot.exceptions import InvalidTitleError
-from pywikibot.pagegenerators import CategorizedPageGenerator, PreloadingGenerator
 import re
 import signal
 import sys
+from functools import lru_cache
+
+from pywikibot import Category, Page, Site
+from pywikibot.exceptions import InvalidTitleError
+from pywikibot.pagegenerators import CategorizedPageGenerator, PreloadingGenerator
 from tqdm import tqdm
 
 signal.signal(signal.SIGINT, lambda *_: sys.exit(130))
@@ -35,7 +36,7 @@ image_link = re.compile(r"\[\[(?:image|file):([^|\]]+)", flags=re.I)
 site = Site()
 commons = Site("commons:commons")
 category = Category(site, "English lemmas")
-gen = CategorizedPageGenerator(category)
+gen = CategorizedPageGenerator(category, content=True)
 
 
 @lru_cache(maxsize=100_000)

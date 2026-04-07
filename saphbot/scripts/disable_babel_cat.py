@@ -62,11 +62,11 @@ class DisableBabelCatBot(SaphBot):
         text = page.text
 
         if (
-            "/" in title
-            or title in ignore
-            or not page.botMayEdit()
-            or "Babel" not in text
+            "Babel" not in text
             or "babel" not in text
+            or "/" in title
+            or not page.botMayEdit()
+            or title in ignore
         ):
             return None
 
