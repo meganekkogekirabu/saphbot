@@ -20,17 +20,17 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from datetime import timedelta
 import logging
+from datetime import timedelta
+from typing import Optional
+
 import diskcache
 import mwparserfromhell
+from core import SaphBot
 from pywikibot import Site
 from pywikibot.exceptions import LockedPageError
 from pywikibot.page import BasePage, User
 from pywikibot.pagegenerators import PreloadingGenerator
-from typing import Optional
-
-from core import SaphBot
 
 ignore = (
     open("saphbot/lists/babel_cat_ignore.txt", "r", encoding="utf-8")
@@ -54,15 +54,14 @@ class DisableBabelCatBot(SaphBot):
         "years ago as inactive in Babel"
     )
 
+    _server_time = Site().server_time()
+
     def __treat(self, page: User) -> Optional[User]:
         title = page.title()
         if "/" in title or title in ignore:
             return None
 
-        # dummy edit to check if page is protected
-        try:
-            page.touch(quiet=True)
-        except LockedPageError:
+        if not page.botMayEdit():
             return None
 
         code = mwparserfromhell.parse(page.text)
@@ -91,7 +90,7 @@ class DisableBabelCatBot(SaphBot):
             if already_tagged:
                 continue
 
-            delta: timedelta = site.server_time() - last_edit[2]
+            delta = self._server_time - last_edit[2]
             if delta >= timedelta(days=730):
                 template.add("inactive", "1")
 
