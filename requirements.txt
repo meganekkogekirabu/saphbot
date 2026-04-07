@@ -1,9 +1,0 @@
-cachetools
-colorlog
-diskcache
-InquirerPy
-lxml
-mwparserfromhell
-pre-commit
-pywikibot
-tqdm

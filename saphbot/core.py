@@ -17,17 +17,16 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+import logging
 from abc import abstractmethod
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
-import logging
-from pywikibot.page import Page
 from queue import Queue
 from threading import Thread
-from typing import Iterable, Optional
-from typing_extensions import Self
+from typing import Iterable, Optional, Self
 
 from lib.misc import normalise
+from pywikibot.page import Page
 
 logger = logging.getLogger("saphbot.core")
 
