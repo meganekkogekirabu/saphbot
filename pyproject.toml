@@ -15,3 +15,21 @@ dependencies = [
     "pywikibot>=11.1.0",
     "tqdm>=4.67.3",
 ]
+
+[tool.mypy]
+disable_error_code = ["import-untyped"]
+
+[tool.ruff]
+exclude = [
+  ".git",
+  "user-config.py",
+  ".venv",
+]
+
+[tool.ruff.lint]
+fixable = ["ALL"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
